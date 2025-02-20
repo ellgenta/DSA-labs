@@ -179,11 +179,9 @@ void resize(arraylist *ar,int newsize){
 
 void clear(arraylist* ar){
     ar->data=realloc(ar->data,sizeof(int));
-    
-    if(!ar->data)
-        return;
-    
-    ar->
+
+    ar->capacity=ar->data ? ar->data+1 : NULL;
+    ar->size=ar->data;
 }
 
 void test_push_back() {
@@ -215,8 +213,7 @@ void test_push_back() {
 
 void test_pop_back(){
     int *tmp=malloc(2*sizeof(int));
-    if(!tmp)
-        exit(1);
+    assert(tmp);
 
     arraylist a={tmp,tmp+2,tmp+2};
     pop_back(&a);
@@ -236,8 +233,7 @@ void test_pop_back(){
 
 void test_insert(){
     int *tmp=malloc(sizeof(int));
-    if(!tmp)
-        exit(1);
+    assert(tmp);
 
     arraylist a={tmp,tmp,tmp};
     insert(&a,0,0);
@@ -275,8 +271,7 @@ void test_insert(){
 
 void test_at(){
     int *tmp=malloc(sizeof(int));
-    if(!tmp)
-        exit(1);
+    assert(tmp);
 
     arraylist a={tmp,tmp+1,tmp+1};
     a.data[0]=0;
@@ -303,8 +298,7 @@ void test_initialize(){
 void test_delete()
 {
     int *tmp=malloc(3*sizeof(int));
-    if(!tmp)
-        exit(1);
+    assert(tmp);
 
     arraylist a={tmp,tmp+3,tmp+3};
     a.data[0]=0;
@@ -329,8 +323,7 @@ void test_delete()
 
 void test_resize(){
     int *tmp=malloc(sizeof(int));
-    if(!tmp)
-        exit(1);
+    assert(tmp);
 
     arraylist a={tmp,tmp+1,tmp+1};
 
@@ -352,32 +345,21 @@ void test_resize(){
 }
 
 void test_clear(){
-    int *tmp=malloc(sizeof(int)*2);
-    if(!tmp)
-        exit(1);
+    int* tmp=malloc(sizeof(int)*5);
+    assert(tmp);
 
-    arraylist a={tmp,tmp+2,tmp+2};
+    arraylist a={tmp,tmp+5,tmp+5};
 
     clear(&a);
-    assert(a.capacity==a.data+2);
+    assert(a.capacity==a.data+1);
     assert(a.size==a.data);
 
-    a.data=NULL;
-    a.capacity=NULL;
-    a.size=NULL;
-
-    clear(&a);
-    assert(!a.data);
-    assert(!a.capacity);
-    assert(!a.size);
-
-    free(tmp);
+    free(a.data);
 }
 
 void test_size(){
     int *tmp=malloc(5*sizeof(int));
-    if(!tmp)
-        exit(1);
+    assert(tmp);
 
     arraylist a={tmp,tmp+1,tmp+1};
 

@@ -19,6 +19,7 @@ int size(arraylist* ar){
     int length=ar->size-ar->data;
     if(length<0)
         exit(1);
+
     return length;
 }
 
@@ -266,6 +267,8 @@ void test_insert(){
     assert(a.capacity==a.size);
     assert(a.capacity-a.data==4);
 
+    if(a.data!=tmp)
+        free(a.data);
     free(tmp);
 }
 
@@ -293,6 +296,8 @@ void test_initialize(){
 
     assert(a.capacity==a.data+1);
     assert(a.size==a.data);
+
+    free(a.data);
 }
 
 void test_delete()
@@ -341,6 +346,8 @@ void test_resize(){
     assert(a.capacity==a.data+5);
     assert(a.size==a.data+2);
 
+    if(a.data!=tmp)
+        free(a.data);
     free(tmp);
 }
 
@@ -349,6 +356,10 @@ void test_clear(){
     assert(tmp);
 
     arraylist a={tmp,tmp+5,tmp+5};
+
+    clear(&a);
+    assert(a.capacity==a.data+1);
+    assert(a.size==a.data);
 
     clear(&a);
     assert(a.capacity==a.data+1);
@@ -391,3 +402,4 @@ int main()
 
     return 0;
 }
+

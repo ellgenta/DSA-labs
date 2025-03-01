@@ -23,16 +23,19 @@ typedef enum {
 } signal;
 
 
-#if defined _INC_STDIO
-    void error_handling(signal name){
-        if(name==SIG_OS)
-            printf("The operating system did not allocate the memory\n");
-        else if(name==SIG_TRN)
-            printf("Passing argument is transcendent\n");
-        else if(name==SIG_IC)
-            printf("Function can not be called\n");
-    }
-#endif 
+void error_handling(signal name){
+    #if defined _INC_STDIO
+    
+    if(name==SIG_OS)
+        printf("The operating system did not allocate the memory\n");
+    else if(name==SIG_TRN)
+        printf("Passing argument is transcendent\n");
+    else if(name==SIG_IC)
+        printf("Function can not be called\n");
+
+    #endif 
+    //how to "message" about a received signal if stdio.h isn't included?
+}
 
 void initialize(linked_list *list,int total_nodes,int value){
     if(total_nodes<=0)

@@ -1,39 +1,84 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 
-typedef struct node {
+typedef struct _node{
     int data;
-    struct node *next;
+    struct _node *next;
 } node;
 
 typedef struct _linked_list{
     node* head;
-    size_t length;
+    node* tail;
+    size_t size;
 } linked_list;
 
-linked_list* initialize(node* head,linked_list* list){
-    list->head=head;
-    list->length=1;
-
-    return list;
-}
-
-void push_front(int value,linked_list* list){
-    node* newnode=malloc(sizeof(node));
-    if(!newnode)
+void initialize(linked_list *list,int total_nodes,int value){
+    if(total_nodes<=0)
         return;
 
-    newnode->next=list->head;
-    list->head=newnode;
+    node* new_node=calloc(1,sizeof(node));
+    if(!new_node)
+        return;
+
+    new_node->data=value;
+    list->head=new_node;
+    
+    int count=1;
+    while(count<total_nodes){
+        new_node->next=calloc(1,sizeof(node));
+        if(!new_node->next)
+            return;
+        new_node=new_node->next;
+        new_node->data=value;
+        ++count;
+    }
+
+    list->tail=new_node;
+    list->size=total_nodes;
 }
 
-void pop_front(linked_list* list){
-    node *tmp=list->head->next;
-    free(list->head);
+void test_initialize(){
+    linked_list example={NULL,NULL,0};
 
-    list->head=tmp;
+    initialize(&example,0,1);
+    assert(example.size==0);
+    assert(example.head==NULL);
+    assert(example.tail==NULL);
+
+    initialize(&example,1,1);
+    assert(example.size==1);
+    assert(example.head->data==1);
+    assert(example.tail==example.head);
+    assert(example.tail->next==NULL);
+
+    free(example.head);
+    initialize(&example,3,1);
+    assert(example.size==3);
+    assert(example.head->data==1);
+    assert(example.head->next->data==1);
+    assert(example.tail=example.head->next->next);
+    assert(example.tail->data==1);
+    assert(example.tail->next==NULL);
+
+    //example must be freed
 }
 
-int main(void) {
+void show_list(linked_list* list){
+    node* iterator=list->head;
 
+    for(int i=0;i<list->size;++i){
+        printf("%d ",iterator->data);
+        iterator=iterator->next;
+    }
+}
+
+int main(void)
+{
+    linked_list* example;
+    initialize(example,1,1);
+
+    test_initialize();
+    show_list(example);
+    return 0;
 }

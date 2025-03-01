@@ -2,16 +2,37 @@
 #include <stdlib.h>
 #include <assert.h>
 
-typedef struct _node{
+typedef struct _node
+{
     int data;
     struct _node *next;
 } node;
 
-typedef struct _linked_list{
+typedef struct _linked_list
+{
     node* head;
     node* tail;
     size_t size;
 } linked_list;
+
+typedef enum {
+    SIG_DEF,
+    SIG_OS,
+    SIG_TRN,
+    SIG_IC
+} signal;
+
+
+#if defined _INC_STDIO
+    void error_handling(signal name){
+        if(name==SIG_OS)
+            printf("The operating system did not allocate the memory\n");
+        else if(name==SIG_TRN)
+            printf("Passing argument is transcendent\n");
+        else if(name==SIG_IC)
+            printf("Function can not be called\n");
+    }
+#endif 
 
 void initialize(linked_list *list,int total_nodes,int value){
     if(total_nodes<=0)
@@ -36,6 +57,33 @@ void initialize(linked_list *list,int total_nodes,int value){
 
     list->tail=new_node;
     list->size=total_nodes;
+}
+
+void push_front(linked_list* list,int value){
+    node* new_head=malloc(sizeof(node));
+    if(!new_head)
+        return;
+
+    new_head->data=value;
+    new_head->next=list->head;
+    list->head=new_head;
+
+    ++list->size;
+}
+
+void pop_front(linked_list* list){
+    if(list->head==list->tail){
+        error_handling(SIG_IC);
+        return;
+    }
+
+    node* new_head=list->head->next;
+    free(list->head);
+    list->head=new_head;
+    --list->size;
+
+    //if head->next==NULL 
+    //if list->size==1
 }
 
 void test_initialize(){
@@ -64,6 +112,8 @@ void test_initialize(){
     //example must be freed
 }
 
+#ifdef _INC_STDIO
+
 void show_list(linked_list* list){
     node* iterator=list->head;
 
@@ -71,14 +121,20 @@ void show_list(linked_list* list){
         printf("%d ",iterator->data);
         iterator=iterator->next;
     }
+    printf("\n");
 }
+
+#endif
 
 int main(void)
 {
     linked_list* example;
     initialize(example,1,1);
 
-    test_initialize();
-    show_list(example);
+    //push_front(example,2);
+    //show_list(example);
+    pop_front(example);
+    //show_list(example);
+
     return 0;
 }

@@ -154,11 +154,19 @@ void pop_back(linked_list* list){
 }
 
 void insert(linked_list* list,int indx,int value){
-    if(indx>=list->size){
+    if(indx>=(int)list->size){
         error_handling(SIG_TRN);
         return;
     }else if(indx<0){
         error_handling(SIG_IC);
+        return;
+    }
+
+    if(!indx){
+        push_front(list,value);
+        return;
+    }else if(indx==list->size-1){
+        push_back(list,value);
         return;
     }
 
@@ -169,23 +177,6 @@ void insert(linked_list* list,int indx,int value){
     }
     node* temp=list->head;
 
-    if(!indx){
-        ins_node->next=list->head;
-        ins_node->data=value;
-        list->head=ins_node;
-        ++list->size;
-        received=SIG_DEF;
-        return;
-    }else if(indx==list->size-1){
-        list->tail->next=ins_node;
-        ins_node->data=value;
-        ins_node->next=NULL;
-        list->tail=ins_node;
-        ++list->size;
-        received=SIG_DEF;
-        return;
-    }
-
     int count=0;
     while(count++<indx-1)
         ins_node=ins_node->next;
@@ -194,6 +185,44 @@ void insert(linked_list* list,int indx,int value){
     temp->next=ins_node;
     ins_node->data=value;
     ++list->size;
+
+    received=SIG_DEF;
+}
+
+void erase(linked_list* list,int indx){
+    if(indx>=(int)list->size){
+        error_handling(SIG_TRN);
+        return;
+    }else if(indx<0){
+        error_handling(SIG_IC);
+        return;
+    }
+
+    if(!indx){
+        pop_front(list);
+        return;
+    }else if(indx==list->size-1){
+        pop_back(list);
+        return;
+    }
+
+    node* er_node=malloc(sizeof(node));
+    if(!er_node){
+        error_handling(SIG_OS); 
+        return;
+    }
+    er_node=list->head->next;
+    node* prev=list->head;
+
+    int count=0;
+    while(count++<indx-1){
+        prev=er_node;
+        er_node=er_node->next;
+    }
+
+    prev->next=er_node->next;
+    free(er_node);
+    --list->size;
 
     received=SIG_DEF;
 }
@@ -354,6 +383,61 @@ void test_insert(){
     free(example.head);
 }
 
+void test_erase(){
+    linked_list example={malloc(sizeof(node)),calloc(1,sizeof(node)),4};
+    node* sec=malloc(sizeof(node));
+    node* thrd=malloc(sizeof(node));
+    assert(example.head);
+    assert(example.tail);
+    assert(sec);
+    assert(thrd);
+    thrd->next=example.tail;
+    thrd->data=1;
+    sec->next=thrd;
+    sec->data=2;
+    example.head->next=sec;
+    example.head->data=3;
+
+    erase(&example,4);
+    assert(received==SIG_TRN);
+    assert(example.head->next==sec);
+    assert(sec->next==thrd);
+    assert(example.tail==thrd->next);
+    assert(example.size==4);
+
+    erase(&example,-1);
+    assert(received==SIG_IC);
+    assert(example.head->next==sec);
+    assert(sec->next==thrd);
+    assert(example.tail==thrd->next);
+    assert(example.size==4);
+
+    erase(&example,2);
+    assert(example.head->next->next==example.tail);
+    assert(example.head->next->data==2);
+    assert(example.tail->data==0);
+    assert(example.tail->next==NULL);
+    assert(example.size==3);
+
+    erase(&example,1);
+    assert(example.head->next==example.tail);
+    assert(example.head->data==3);
+    assert(example.tail->data==0);
+    assert(example.tail->next==NULL);
+    assert(example.size==2);
+
+    erase(&example,1);
+    assert(example.head==example.tail);
+    assert(example.head->data==3);
+    assert(example.tail->next==NULL);
+    assert(example.size==1);
+
+    erase(&example,0);
+    assert(example.head==NULL);
+    assert(example.tail==NULL);
+    assert(example.size==0);
+}
+
 #ifdef _INC_STDIO
 
 void show_list(linked_list* list){
@@ -371,6 +455,8 @@ void show_list(linked_list* list){
 int main(void)
 {
     linked_list* ex;
+ 
+    //maybe iterator should be transformed into a separate function
     
     test_initialize();
     test_pop_front();
@@ -378,6 +464,7 @@ int main(void)
     test_push_front();
     test_push_back();
     test_insert();
+    test_erase();
 
     return 0;
 }

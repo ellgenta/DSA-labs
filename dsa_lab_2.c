@@ -35,9 +35,8 @@ void error_handling(signal name){
         printf("SIG_TRN: Passing argument is transcendent\n");
     else if(name==SIG_IC)
         printf("SIG_IC: Function can not be called\n");
-    #else
-    received=name;
     #endif
+    received=name;
     //how to "message" about a received signal if stdio.h isn't included?
 }
 

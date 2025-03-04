@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#define TESTS
+
 typedef struct _node
 {
     int data;
@@ -15,7 +17,8 @@ typedef struct _linked_list
     size_t size;
 } linked_list;
 
-typedef enum {
+typedef enum 
+{
     SIG_DEF,
     SIG_OS,
     SIG_TRN,
@@ -25,7 +28,7 @@ typedef enum {
 signal received=SIG_DEF;
 
 void error_handling(signal name){
-    #if defined _INC_STDIO
+    #if !defined TESTS
     if(name==SIG_OS)
         printf("SIG_OS: The operating system did not allocate the memory\n");
     else if(name==SIG_TRN)
@@ -227,6 +230,104 @@ void erase(linked_list* list,int indx){
     received=SIG_DEF;
 }
 
+int front(linked_list* list){
+    if(!list->head){
+        error_handling(SIG_IC);
+        #if !defined TESTS
+        #error Returning value can not be used!
+        exit(3);
+        #else 
+        return SIG_IC;
+        #endif
+    }
+    received=SIG_DEF;
+
+    return list->head->data;
+}
+
+int back(linked_list* list){
+    if(!list->tail){
+        error_handling(SIG_IC);
+        #if !defined TESTS
+        #error Returning value can not be used!
+        exit(3);
+        #else 
+        return SIG_IC;
+        #endif
+    }
+    received=SIG_DEF;
+
+    return list->tail->data;
+}
+
+void resize(linked_list* list,int newsize){
+    if(newsize<0){
+        error_handling(SIG_TRN);
+        return;
+    }
+
+    int diff=newsize-(int)list->size;
+
+    if(!diff)
+        return;
+
+    if(diff>0){
+        node* aux_node=calloc(1,sizeof(node));
+        if(!aux_node){
+            error_handling(SIG_OS);
+            return;
+        }
+
+        if(!list->tail){
+            list->tail=aux_node;
+            list->head=list->tail;
+            ++list->size;
+            --diff;
+        }else
+            aux_node=list->tail;
+
+        int count=0;
+        while(count<diff){
+            aux_node->next=calloc(1,sizeof(node));
+            list->tail=aux_node->next;
+            if(!aux_node){
+                error_handling(SIG_OS);
+                return;
+            }
+            aux_node=aux_node->next;
+            ++list->size;
+            ++count;
+        }
+    }else{
+        diff=0-diff;
+        node* links[diff];
+
+        node* aux_ptr=list->head;
+
+        for(int count=0,i=0;count<list->size;++count){
+            if(count==newsize-1)
+                list->tail=aux_ptr;
+            if(count>=newsize)
+                links[i++]=aux_ptr;
+            aux_ptr=aux_ptr->next;
+        }
+
+        while(diff){
+            free(links[--diff]);
+            --list->size;
+        }
+
+        if(newsize)
+            list->tail->next=NULL;
+        else{
+            list->head=NULL;
+            list->tail=NULL;
+        }
+    }
+
+    received=SIG_DEF;
+}
+
 void test_initialize(){
     linked_list example={NULL,NULL,0};
 
@@ -237,6 +338,7 @@ void test_initialize(){
     assert(example.tail==NULL);
 
     initialize(&example,1,1);
+    assert(received==SIG_DEF);
     assert(example.size==1);
     assert(example.head->data==1);
     assert(example.tail==example.head);
@@ -244,6 +346,7 @@ void test_initialize(){
 
     free(example.head);
     initialize(&example,3,1);
+    assert(received==SIG_DEF);
     assert(example.size==3);
     assert(example.head->data==1);
     assert(example.head->next->data==1);
@@ -260,7 +363,7 @@ void test_push_front(){
     linked_list example={NULL,NULL,0};
 
     push_front(&example,1);
-    //assert receive==SIG_DEF
+    assert(received==SIG_DEF);
     assert(example.head);
     assert(example.tail);
     assert(example.head==example.tail);
@@ -268,6 +371,7 @@ void test_push_front(){
     assert(example.size==1);
 
     push_front(&example,2);
+    assert(received==SIG_DEF);
     assert(example.head!=example.tail);
     assert(example.head->next==example.tail);
     assert(example.head->data==2);
@@ -286,12 +390,14 @@ void test_pop_front(){
     example.head->data=1;
 
     pop_front(&example);
+    assert(received==SIG_DEF);
     assert(example.head==example.tail);
     assert(example.head->next==NULL);
     assert(example.head->data==0);
     assert(example.size==1);
 
     pop_front(&example);
+    assert(received==SIG_DEF);
     assert(example.head==NULL);
     assert(example.tail==NULL);
     assert(example.size==0);
@@ -307,12 +413,14 @@ void test_push_back(){
     linked_list example={NULL,NULL,0};
 
     push_back(&example,1);
+    assert(received==SIG_DEF);
     assert(example.head);
     assert(example.head==example.tail);
     assert(example.head->data==1);
     assert(example.size==1);
 
     push_back(&example,2);
+    assert(received==SIG_DEF);
     assert(example.head->next==example.tail);
     assert(example.head->data==1);
     assert(example.tail->data==2);
@@ -330,11 +438,13 @@ void test_pop_back(){
     example.head->next=example.tail;
 
     pop_back(&example);
+    assert(received==SIG_DEF);
     assert(example.head==example.tail);
     assert(example.tail->data==1);
     assert(example.size==1);
 
     pop_back(&example);
+    assert(received==SIG_DEF);
     assert(example.head==NULL);
     assert(example.tail==NULL);
     assert(example.size==0);
@@ -359,17 +469,20 @@ void test_insert(){
     assert(example.head->data==0);
 
     insert(&example,0,1);
+    assert(received==SIG_DEF);
     assert(example.tail->data==0);
     assert(example.head->next==example.tail);
     assert(example.size==2);
 
     insert(&example,1,-2);
+    assert(received==SIG_DEF);
     assert(example.tail->data==-2);
     assert(example.head->next->data==0);
     assert(example.head->next->next==example.tail);
     assert(example.size==3);
 
     insert(&example,1,-1);
+    assert(received==SIG_DEF);
     assert(example.head->data==1);
     assert(example.head->next->data==-1);
     assert(example.head->next->next->data==0);
@@ -413,6 +526,7 @@ void test_erase(){
     assert(example.size==4);
 
     erase(&example,2);
+    assert(received==SIG_DEF);
     assert(example.head->next->next==example.tail);
     assert(example.head->next->data==2);
     assert(example.tail->data==0);
@@ -420,6 +534,7 @@ void test_erase(){
     assert(example.size==3);
 
     erase(&example,1);
+    assert(received==SIG_DEF);
     assert(example.head->next==example.tail);
     assert(example.head->data==3);
     assert(example.tail->data==0);
@@ -427,15 +542,105 @@ void test_erase(){
     assert(example.size==2);
 
     erase(&example,1);
+    assert(received==SIG_DEF);
     assert(example.head==example.tail);
     assert(example.head->data==3);
     assert(example.tail->next==NULL);
     assert(example.size==1);
 
     erase(&example,0);
+    assert(received==SIG_DEF);
     assert(example.head==NULL);
     assert(example.tail==NULL);
     assert(example.size==0);
+}
+
+void test_front(){
+    linked_list example={NULL,NULL,0};
+
+    assert(front(&example)==SIG_IC);
+    assert(received==SIG_IC);
+
+    example.head=malloc(sizeof(int));
+    assert(example.head);
+    example.head->next=NULL;
+    example.tail=example.head;
+    example.head->data=1;
+    example.size=1;
+    assert(front(&example)==1);
+    assert(received==SIG_DEF);
+
+    example.tail=malloc(sizeof(int));
+    assert(example.tail);
+    example.size=2;
+    example.head->next=example.tail;
+    example.tail->next=NULL;
+    example.tail->data=2;
+    assert(front(&example)==1);
+    assert(received==SIG_DEF);
+}
+
+void test_back(){
+    linked_list example={NULL,NULL,0};
+
+    assert(back(&example)==SIG_IC);
+    assert(received==SIG_IC);
+
+    example.head=malloc(sizeof(int));
+    assert(example.head);
+    example.head->next=NULL;
+    example.tail=example.head;
+    example.head->data=1;
+    example.size=1;
+    assert(back(&example)==1);
+    assert(received==SIG_DEF);
+
+    example.tail=malloc(sizeof(int));
+    assert(example.tail);
+    example.size=2;
+    example.head->next=example.tail;
+    example.tail->next=NULL;
+    example.tail->data=2;
+    assert(back(&example)==2);
+    assert(received==SIG_DEF);
+}
+
+void test_resize(){
+    linked_list example={NULL,NULL,0};
+
+    resize(&example,-1);
+    assert(received==SIG_TRN);
+    assert(example.head==NULL);
+    assert(example.tail==NULL);
+    assert(example.size==0);
+    
+    resize(&example,2);
+    assert(received==SIG_DEF);
+    assert(example.head->next==example.tail);
+    assert(example.head->data==0);
+    assert(example.tail->data==0);
+    assert(example.size==2);
+
+    resize(&example,3);
+    assert(received==SIG_DEF);
+    assert(example.head->next->next==example.tail);
+    assert(example.head->data==0);
+    assert(example.head->next->data==0);
+    assert(example.tail->data==0);
+    assert(example.size==3);
+
+    resize(&example,1);
+    assert(received==SIG_DEF);
+    assert(example.head==example.tail);
+    assert(example.head->data==0);
+    assert(example.tail->next==NULL);
+
+    resize(&example,0);
+    assert(received==SIG_DEF);
+    assert(example.head==NULL);
+    assert(example.tail==NULL);
+    assert(example.size==0);
+    //test newsize=size?
 }
 
 #ifdef _INC_STDIO
@@ -457,7 +662,8 @@ int main(void)
     linked_list* ex;
  
     //maybe iterator should be transformed into a separate function
-    
+    //init function should be rewritten
+
     test_initialize();
     test_pop_front();
     test_pop_back();
@@ -465,6 +671,9 @@ int main(void)
     test_push_back();
     test_insert();
     test_erase();
+    test_front();
+    test_back();
+    test_resize();
 
     return 0;
 }

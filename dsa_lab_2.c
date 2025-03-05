@@ -1,4 +1,4 @@
-//#include <stdio.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 
@@ -37,38 +37,12 @@ void error_handling(signal name){
         printf("SIG_IC: Function can not be called\n");
     #endif
     received=name;
-    //how to "message" about a received signal if stdio.h isn't included?
 }
 
-void initialize(linked_list* list,int total_nodes,int value){
-    if(total_nodes<=0){
-        error_handling(SIG_TRN);
-        return;
-    }
-
-    node* new_node=calloc(1,sizeof(node));
-    if(!new_node){
-        error_handling(SIG_OS);
-        return;
-    }
-
-    new_node->data=value;
-    list->head=new_node;
-    
-    int count=1;
-    while(count<total_nodes){
-        new_node->next=calloc(1,sizeof(node));
-        if(!new_node->next){
-            error_handling(SIG_OS);
-            return;
-        }
-        new_node=new_node->next;
-        new_node->data=value;
-        ++count;
-    }
-
-    list->tail=new_node;
-    list->size=total_nodes;
+void initialize(linked_list* list){
+    list->head=NULL;
+    list->tail=NULL;
+    list->size=0;
 
     received=SIG_DEF;
 }
@@ -181,7 +155,7 @@ void insert(linked_list* list,int indx,int value){
 
     int count=0;
     while(count++<indx-1)
-        ins_node=ins_node->next;
+        temp=temp->next;
 
     ins_node->next=temp->next;
     temp->next=ins_node;
@@ -234,7 +208,6 @@ int front(linked_list* list){
         error_handling(SIG_IC);
         #if !defined TESTS
         #error Returning value can not be used!
-        exit(3);
         #else 
         return SIG_IC;
         #endif
@@ -249,7 +222,6 @@ int back(linked_list* list){
         error_handling(SIG_IC);
         #if !defined TESTS
         #error Returning value can not be used!
-        exit(3);
         #else 
         return SIG_IC;
         #endif
@@ -327,35 +299,43 @@ void resize(linked_list* list,int newsize){
     received=SIG_DEF;
 }
 
-void test_initialize(){
-    linked_list example={NULL,NULL,0};
+size_t size(linked_list* list){
+    received=SIG_DEF;
 
-    initialize(&example,0,1);
-    assert(received==SIG_TRN);
-    assert(example.size==0);
+    return list->size;
+}
+
+void clear(linked_list* list){
+    if(!list->head)
+        return;
+
+    node* aux_ptr=list->head;
+    node* links[list->size];
+
+    for(int i=0;aux_ptr;++i){
+        links[i]=aux_ptr;
+        aux_ptr=aux_ptr->next;
+    }
+
+    for(int i=list->size-1;i>=0;--i){
+        free(links[i]);
+        --list->size;
+    }
+
+    list->head=NULL;
+    list->tail=NULL;
+
+    received=SIG_DEF;
+}
+
+void test_initialize(){
+    linked_list example;
+
+    initialize(&example);
+    assert(received==SIG_DEF);
     assert(example.head==NULL);
     assert(example.tail==NULL);
-
-    initialize(&example,1,1);
-    assert(received==SIG_DEF);
-    assert(example.size==1);
-    assert(example.head->data==1);
-    assert(example.tail==example.head);
-    assert(example.tail->next==NULL);
-
-    free(example.head);
-    initialize(&example,3,1);
-    assert(received==SIG_DEF);
-    assert(example.size==3);
-    assert(example.head->data==1);
-    assert(example.head->next->data==1);
-    assert(example.tail=example.head->next->next);
-    assert(example.tail->data==1);
-    assert(example.tail->next==NULL);
-
-    free(example.tail);
-    free(example.head->next);
-    free(example.head);
+    assert(example.size==0);
 }
 
 void test_push_front(){
@@ -639,29 +619,51 @@ void test_resize(){
     assert(example.head==NULL);
     assert(example.tail==NULL);
     assert(example.size==0);
-    //test newsize=size?
 }
 
-#ifdef _INC_STDIO
+void test_size(){
+    linked_list example={calloc(1,sizeof(node)),calloc(1,sizeof(node)),2};
+    assert(example.head);
+    assert(example.tail);
 
-void show_list(linked_list* list){
-    node* iterator=list->head;
+    example.head->next=example.tail;
+    assert(size(&example)==2);
+    assert(received==SIG_DEF);
 
-    for(int i=0;i<list->size;++i){
-        printf("%d ",iterator->data);
-        iterator=iterator->next;
-    }
-    printf("\n");
+    free(example.tail);
+    free(example.head);
+    example.size=0;
+
+    assert(size(&example)==0);
+    assert(received==SIG_DEF);
 }
 
-#endif
+void test_clear(){
+    linked_list example={malloc(sizeof(node)),calloc(1,sizeof(node)),3};
+    assert(example.head);
+    assert(example.tail);
+
+    node* sec=malloc(sizeof(node));
+    assert(sec);
+    example.head->next=sec;
+    sec->next=example.tail;
+
+    clear(&example);
+    assert(received==SIG_DEF);
+    assert(example.head==NULL);
+    assert(example.tail==NULL);
+    assert(example.size==0);
+
+    clear(&example);
+    assert(received==SIG_DEF);
+    assert(example.head==NULL);
+    assert(example.tail==NULL);
+    assert(example.size==0);
+}
 
 int main(void)
 {
     linked_list* ex;
- 
-    //maybe iterator should be transformed into a separate function
-    //init function should be rewritten
 
     test_initialize();
     test_pop_front();
@@ -673,6 +675,8 @@ int main(void)
     test_front();
     test_back();
     test_resize();
+    test_size();
+    test_clear();
 
     return 0;
 }

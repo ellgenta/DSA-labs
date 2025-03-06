@@ -274,18 +274,25 @@ void resize(linked_list* list,int newsize){
         node* aux_ptr=list->head;
         node* aux_ptr_next=aux_ptr;
 
-        for(int i=0;aux_ptr->next;++i){
+        for(int i=0;aux_ptr_next;++i){
             if(i==newsize-1)
                 list->tail=aux_ptr;
             else if(i<newsize)
                 continue;
             aux_ptr_next=aux_ptr->next;
-            free(aux_ptr);
+            if(i>=newsize){
+                free(aux_ptr);
+                --list->size;
+            }
             aux_ptr=aux_ptr_next;
-            --list->size;
         }
 
-        list->tail->next=NULL;
+        if(list->size==0){
+            list->head=NULL;
+            list->tail=NULL;
+        }
+        else
+            list->tail->next=NULL;
     }
 
     received=SIG_DEF;

@@ -270,30 +270,22 @@ void resize(linked_list* list,int newsize){
             ++count;
         }
     }else{
-        diff=0-diff;
-        node* links[diff];
-
+        diff=-diff;
         node* aux_ptr=list->head;
+        node* aux_ptr_next=aux_ptr;
 
-        for(int count=0,i=0;count<list->size;++count){
-            if(count==newsize-1)
+        for(int i=0;aux_ptr->next;++i){
+            if(i==newsize-1)
                 list->tail=aux_ptr;
-            if(count>=newsize)
-                links[i++]=aux_ptr;
-            aux_ptr=aux_ptr->next;
-        }
-
-        while(diff){
-            free(links[--diff]);
+            else if(i<newsize)
+                continue;
+            aux_ptr_next=aux_ptr->next;
+            free(aux_ptr);
+            aux_ptr=aux_ptr_next;
             --list->size;
         }
 
-        if(newsize)
-            list->tail->next=NULL;
-        else{
-            list->head=NULL;
-            list->tail=NULL;
-        }
+        list->tail->next=NULL;
     }
 
     received=SIG_DEF;

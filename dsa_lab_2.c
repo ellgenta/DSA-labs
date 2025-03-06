@@ -30,11 +30,11 @@ signal received=SIG_DEF;
 void error_handling(signal name){
     #if !defined TESTS
     if(name==SIG_OS)
-        printf("SIG_OS: The operating system did not allocate the memory\n");
+        perror("SIG_OS: The operating system did not allocate the memory\n");
     else if(name==SIG_TRN)
-        printf("SIG_TRN: Passing argument is transcendent\n");
+        perror("SIG_TRN: Passing argument is transcendent\n");
     else if(name==SIG_IC)
-        printf("SIG_IC: Function can not be called\n");
+        perror("SIG_IC: Function can not be called\n");
     #endif
     received=name;
 }
@@ -94,7 +94,6 @@ void push_back(linked_list* list,int value){
     else
         list->head=new_tail;
     list->tail=new_tail;
-
 
     ++list->size;
 
@@ -159,9 +158,7 @@ void erase(node* prev,linked_list* list){
     node* temp=prev->next->next;
     if(!temp)
         list->tail=list->head;
-
     free(prev->next);
-
     prev->next=temp;
     --list->size;
 
@@ -207,11 +204,12 @@ void resize(linked_list* list,int newsize){
         return;
     }
 
-    int diff=newsize-(int)list->size;
-
-    if(!diff)
+    if(newsize==(int)list->size){
+        received=SIG_DEF;
         return;
+    }
 
+    int diff=newsize-(int)list->size;
     if(diff>0){
         node* aux_node=calloc(1,sizeof(node));
         if(!aux_node){
@@ -227,30 +225,24 @@ void resize(linked_list* list,int newsize){
         }else
             aux_node=list->tail;
 
-        int count=0;
-        while(count<diff){
+        for(int count=0;count<diff;++count,++list->size){
             aux_node->next=calloc(1,sizeof(node));
-            list->tail=aux_node->next;
-            if(!aux_node){
+            if(!aux_node->next){
                 error_handling(SIG_OS);
                 return;
             }
+            list->tail=aux_node->next;
             aux_node=aux_node->next;
-            ++list->size;
-            ++count;
         }
     }else{
-        diff=-diff;
         node* aux_ptr=list->head;
         node* aux_ptr_next=aux_ptr;
 
-        for(int i=0;aux_ptr_next;++i){
-            if(i==newsize-1)
-                list->tail=aux_ptr;
-            else if(i<newsize)
-                continue;
+        for(int count=0;aux_ptr_next;++count){
             aux_ptr_next=aux_ptr->next;
-            if(i>=newsize){
+            if(count==newsize-1)
+                list->tail=aux_ptr;
+            else if(count>=newsize){
                 free(aux_ptr);
                 --list->size;
             }
@@ -619,4 +611,3 @@ int main(void)
 
     return 0;
 }
-

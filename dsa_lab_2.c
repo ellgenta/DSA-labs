@@ -470,7 +470,7 @@ void test_front(){
     assert(front(&example)==SIG_IC);
     assert(received==SIG_IC);
 
-    example.head=malloc(sizeof(int));
+    example.head=malloc(sizeof(node));
     assert(example.head);
     example.head->next=NULL;
     example.tail=example.head;
@@ -479,7 +479,7 @@ void test_front(){
     assert(front(&example)==1);
     assert(received==SIG_DEF);
 
-    example.tail=malloc(sizeof(int));
+    example.tail=malloc(sizeof(node));
     assert(example.tail);
     example.size=2;
     example.head->next=example.tail;
@@ -495,7 +495,7 @@ void test_back(){
     assert(back(&example)==SIG_IC);
     assert(received==SIG_IC);
 
-    example.head=malloc(sizeof(int));
+    example.head=malloc(sizeof(node));
     assert(example.head);
     example.head->next=NULL;
     example.tail=example.head;
@@ -504,7 +504,7 @@ void test_back(){
     assert(back(&example)==1);
     assert(received==SIG_DEF);
 
-    example.tail=malloc(sizeof(int));
+    example.tail=malloc(sizeof(node));
     assert(example.tail);
     example.size=2;
     example.head->next=example.tail;

@@ -155,11 +155,11 @@ void erase(node* prev,linked_list* list){
         return;
     }
 
-    node* temp=prev->next->next;
-    if(!temp)
+    node* aux_ptr=prev->next->next;
+    if(!aux_ptr)
         list->tail=list->head;
     free(prev->next);
-    prev->next=temp;
+    prev->next=aux_ptr;
     --list->size;
 
     if(!list->size){

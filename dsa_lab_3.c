@@ -17,10 +17,34 @@ typedef struct _linked_list{
     node* rear;
 } linked_list;
 
-void push(linked_list* queue,int value){
+typedef enum{
+    SIG_DEF,
+    SIG_OS,
+    SIG_TRN,
+    SIG_IC,
+}signal;
+
+typedef enum{
+    NONE,
+    INT,
+    BOOL,
+    ERROR
+} type;
+
+typedef struct opt{
+    void *value;
+    type t;
+} option;
+
+option push(linked_list* queue,int value){
+    option res={0,NONE};
+
     node* new_rear=calloc(1,sizeof(node));
-    if(!new_rear)
-        return;
+    if(!new_rear){
+        res.value=SIG_OS;
+        res.t=ERROR;
+        return res;
+    }
 
     new_rear->data=value;
     if(queue->front){
@@ -29,19 +53,22 @@ void push(linked_list* queue,int value){
     }
     else
         queue->front=new_rear;
-    
+
     queue->rear=new_rear;
 
+    return res;
 }
 
-void pop(linked_list* queue){
+option pop(linked_list* queue){
+    option res={0,0};
+
     if(!queue->front)
-        return;
+        return res;
     if(queue->front==queue->rear){
         free(queue->front);
         queue->front=NULL;
         queue->rear=NULL;
-        return;
+        return res;
     }
 
     node* aux_ptr=queue->front->next;
@@ -49,43 +76,68 @@ void pop(linked_list* queue){
     queue->front=aux_ptr;
     queue->front->prev=NULL;
 
+    return res;
 }
 
-size_t size(linked_list* queue){
-    if(!queue->front && !queue->rear)
-        return 0;
-    
+option size(linked_list* queue){
+    option res={0,INT};
+
+    if(!queue->front && !queue->rear){
+        res.value=0;
+        return res;
+    }
+
     node* aux_ptr=queue->front;
 
-    size_t count=0;
+    int count=0;
     while(aux_ptr){
         aux_ptr=aux_ptr->next;
         ++count;
     }
 
-    return count;
+    res.value=count;
+    return res;
 }
 
-bool empty(linked_list* queue){
-    if(!queue->front && !queue->rear)
-        return true;
-    else
-        return false;
+option empty(linked_list* queue){
+    option res={0,BOOL};
+
+    if(!queue->front && !queue->rear){
+        res.value=1;
+        res.t=BOOL;
+    }
+
+    return res;
 }
 
-int front(linked_list* queue){
-    if(empty(queue))
-        return -1; //error handling will be added later
-    else
-        return queue->front->data;
+option front(linked_list* queue){
+    option res={0,INT};
+
+    option r = empty(queue);
+    if(r.t != NONE && (bool)r.value == true){
+        res.t=ERROR;
+        res.value=SIG_IC;
+        return res;
+    }
+    else{
+        res.value=queue->front->data;
+        return res;
+    }
 }
 
-int back(linked_list* queue){
-    if(empty(queue))
-        return -1; //eror handling will be added later
-    else
-        return queue->rear->data;
-}   
+option back(linked_list* queue){
+    option res={0,INT};
+
+    if((bool)empty(queue).t){
+        res.t=ERROR;
+        res.value=SIG_IC;
+        return res;
+    }
+    else{
+        res.value=queue->rear->data;
+        return res;
+    }
+}
 
 void test_push(){
     linked_list q={0};
@@ -142,7 +194,7 @@ void test_size(){
     q.rear->prev=sec_node;
 
     assert(size(&q)==3);
-    
+
     free(q.rear);
     q.rear=sec_node;
     q.rear->next=NULL;

@@ -41,7 +41,7 @@ option push(linked_list* queue,int value){
 
     node* new_rear=calloc(1,sizeof(node));
     if(!new_rear){
-        res.value=SIG_OS;
+        res.value=(void*)SIG_OS;
         res.t=ERROR;
         return res;
     }
@@ -95,7 +95,7 @@ option size(linked_list* queue){
         ++count;
     }
 
-    res.value=count;
+    res.value=(void*)count;
     return res;
 }
 
@@ -103,7 +103,7 @@ option empty(linked_list* queue){
     option res={0,BOOL};
 
     if(!queue->front && !queue->rear){
-        res.value=1;
+        res.value=(void*)1;
         res.t=BOOL;
     }
 
@@ -113,14 +113,14 @@ option empty(linked_list* queue){
 option front(linked_list* queue){
     option res={0,INT};
 
-    option r = empty(queue);
-    if(r.t != NONE && (bool)r.value == true){
+    option r=empty(queue);
+    if(r.t!=NONE && (bool)r.value == true){
         res.t=ERROR;
-        res.value=SIG_IC;
+        res.value=(void*)SIG_IC;
         return res;
     }
     else{
-        res.value=queue->front->data;
+        res.value=(void*)queue->front->data;
         return res;
     }
 }
@@ -128,13 +128,13 @@ option front(linked_list* queue){
 option back(linked_list* queue){
     option res={0,INT};
 
-    if((bool)empty(queue).t){
+    if((bool)empty(queue).value){
         res.t=ERROR;
-        res.value=SIG_IC;
+        res.value=(void*)SIG_IC;
         return res;
     }
     else{
-        res.value=queue->rear->data;
+        res.value=(void*)queue->rear->data;
         return res;
     }
 }
@@ -142,14 +142,14 @@ option back(linked_list* queue){
 void test_push(){
     linked_list q={0};
 
-    push(&q,1);
+    assert(push(&q,1).t==NONE);
     assert(q.rear);
     assert(q.front==q.rear);
     assert(!q.rear->next);
     assert(!q.rear->prev);
     assert(q.rear->data==1);
 
-    push(&q,2);
+    assert(push(&q,2).t==NONE);
     assert(q.rear!=q.front);
     assert(q.front->next==q.rear);
     assert(q.rear->prev=q.front);
@@ -170,13 +170,13 @@ void test_pop(){
     q.front->data=1;
     q.rear->data=2;
 
-    pop(&q);
+    assert(pop(&q).t==NONE);
     assert(q.front==q.rear);
     assert(q.front->data==2);
     assert(!q.front->prev);
     assert(!q.front->next);
 
-    pop(&q);
+    assert(pop(&q).t==NONE);
     assert(!q.front);
     assert(!q.rear);
 }
@@ -193,22 +193,26 @@ void test_size(){
     sec_node->next=q.rear;
     q.rear->prev=sec_node;
 
-    assert(size(&q)==3);
-
+    assert(size(&q).t==INT);
+    assert((size_t)size(&q).value==3);
+    
     free(q.rear);
     q.rear=sec_node;
     q.rear->next=NULL;
-    assert(size(&q)==2);
+    assert(size(&q).t==INT);
+    assert((size_t)size(&q).value==2);
 
     free(q.rear);
     q.rear=q.front;
     q.rear->next=NULL;
-    assert(size(&q)==1);
+    assert(size(&q).t==INT);
+    assert((size_t)size(&q).value==1);
 
     free(q.rear);
     q.rear=NULL;
     q.front=NULL;
-    assert(size(&q)==0);
+    assert(size(&q).t==INT);
+    assert((size_t)size(&q).value==0);
 }
 
 void test_empty(){
@@ -216,12 +220,15 @@ void test_empty(){
     assert(q.front);
     q.rear=q.front;
 
-    assert(empty(&q)==false);
+    assert(empty(&q).t==BOOL);
+    assert((bool)empty(&q).value==false);
 
     free(q.front);
     q.front=NULL;
     q.rear=NULL;
-    assert(empty(&q)==true);
+
+    assert(empty(&q).t==BOOL);
+    assert((bool)empty(&q).value==true);
 }
 
 void test_front(){
@@ -231,17 +238,21 @@ void test_front(){
     q.rear->prev=q.front;
     q.front->data=1;
 
-    assert(front(&q)==1);
+    assert(front(&q).t==INT);
+    assert((int)front(&q).value==1);
 
     free(q.front);
     q.front=q.rear;
     q.rear->prev=NULL;
-    assert(front(&q)==0);
+    assert(front(&q).t==INT);
+    assert((int)front(&q).value==0);
 
     free(q.front);
     q.front=NULL;
     q.rear=NULL;
-    //a test with !q.front && !q.rear coming up
+
+    assert(front(&q).t==ERROR);
+    assert((signal)front(&q).value==SIG_IC);
 }
 
 void test_back(){
@@ -252,17 +263,22 @@ void test_back(){
     q.front->data=1;
     q.rear->data=2;
 
-    assert(back(&q)==2);
+    assert((int)back(&q).t==INT);
+    assert((int)back(&q).value==2);
 
     free(q.rear);
     q.rear=q.front;
     q.rear->next=NULL;
-    assert(back(&q)==1);
+
+    assert((int)back(&q).t==INT);
+    assert((int)back(&q).value==1);
 
     free(q.front);
     q.front=NULL;
     q.rear=NULL;
-    //a test with !q.front && !q.rear coming up
+    
+    assert(back(&q).t==ERROR);
+    assert((signal)front(&q).value==SIG_IC);
 }
 
 int main(){

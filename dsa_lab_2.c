@@ -211,50 +211,11 @@ void resize(linked_list* list,int newsize){
 
     int diff=newsize-(int)list->size;
     if(diff>0){
-        node* aux_node=calloc(1,sizeof(node));
-        if(!aux_node){
-            error_handling(SIG_OS);
-            return;
-        }
-
-        if(!list->tail){
-            list->tail=aux_node;
-            list->head=list->tail;
-            ++list->size;
-            --diff;
-        }else
-            aux_node=list->tail;
-
-        for(int count=0;count<diff;++count,++list->size){
-            aux_node->next=calloc(1,sizeof(node));
-            if(!aux_node->next){
-                error_handling(SIG_OS);
-                return;
-            }
-            list->tail=aux_node->next;
-            aux_node=aux_node->next;
-        }
+        while(list->size<newsize)
+            push_back(list,0);
     }else{
-        node* aux_ptr=list->head;
-        node* aux_ptr_next=aux_ptr;
-
-        for(int count=0;aux_ptr_next;++count){
-            aux_ptr_next=aux_ptr->next;
-            if(count==newsize-1)
-                list->tail=aux_ptr;
-            else if(count>=newsize){
-                free(aux_ptr);
-                --list->size;
-            }
-            aux_ptr=aux_ptr_next;
-        }
-
-        if(list->size==0){
-            list->head=NULL;
-            list->tail=NULL;
-        }
-        else
-            list->tail->next=NULL;
+        while(list->size>newsize)
+            pop_back(list);
     }
 
     received=SIG_DEF;

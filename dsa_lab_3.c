@@ -32,7 +32,7 @@ typedef enum{
 } type;
 
 typedef struct opt{
-    void *value;
+    void* value;
     type t;
 } option;
 
@@ -278,7 +278,7 @@ void test_back(){
     q.rear=NULL;
     
     assert(back(&q).t==ERROR);
-    assert((signal)front(&q).value==SIG_IC);
+    assert((signal)back(&q).value==SIG_IC);
 }
 
 int main(){

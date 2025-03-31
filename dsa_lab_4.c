@@ -1,12 +1,81 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
+#include <string.h>
+
+#define TESTS_MACRO
+#define MAX_BUF_SIZE    100
+
+static char test_buf[MAX_BUF_SIZE]={0};
+static char* test_buf_ptr=test_buf;
 
 typedef struct _node{
     int x;
     struct _node* left;
     struct _node* right;
 } node;
+
+typedef enum{
+    false,
+    true
+} bool;
+
+typedef struct _elm{
+    node* ptr;
+    struct _elm* prev;
+    struct _elm* next;
+} element;
+
+typedef struct _linked_list{
+    element* front;
+    element* rear;
+} linked_list;
+
+void push(linked_list* queue,node* node_ptr){
+    element* new_rear=calloc(1,sizeof(element));
+    if(!new_rear)
+        return;
+
+    new_rear->ptr=node_ptr;
+    if(queue->front){
+        new_rear->prev=queue->rear;
+        queue->rear->next=new_rear;
+    }
+    else
+        queue->front=new_rear;
+
+    queue->rear=new_rear;
+
+}
+
+void pop(linked_list* queue){
+    if(!queue->front)
+        return;
+    if(queue->front==queue->rear){
+        free(queue->front);
+        queue->front=NULL;
+        queue->rear=NULL;
+        return;
+    }
+
+    element* aux_ptr=queue->front->next;
+    free(queue->front);
+    queue->front=aux_ptr;
+    queue->front->prev=NULL;
+
+}
+
+bool empty(linked_list* queue){
+    if(!queue->front && !queue->rear)
+        return true;
+    else
+        return false;
+}
+
+void buf_flush(char* buf_ptr,size_t buf_size){
+    for(int i=0;i<buf_size;++i)
+        buf_ptr[i]='\0';
+}
 
 void clear(node** root){
     if(*root==NULL)
@@ -50,30 +119,63 @@ int height(node* root){
     return l_height>r_height ? l_height : r_height;
 }
 
-void insert(node* root,node* subtree_root){
-    if(find(root,subtree_root->x))
+void insert(node** root,node* subtree_root){
+    if(!*root){
+        *root=subtree_root;
         return;
-    //subtree-root value already makes part of the initial tree values
-    
-    node* aux=root;
-    while(aux){
-        if(subtree_root->x<aux->x){
-            if(aux->left)
-                aux=aux->left;
-            else{
-                aux->left=subtree_root;
-                break;
-            }
-        } else{
-            if(aux->right)
-                aux=aux->right;
-            else{
-                aux->right=subtree_root;
-                break;
-            }
-        }
     }
 
+    if(find(*root,subtree_root->x))
+        return;
+    //subtree-root value already makes part of the initial tree values
+
+    node* aux=*root;
+
+    while(aux->left!=subtree_root && aux->right!=subtree_root){
+        if(subtree_root->x<aux->x && aux->left)
+            aux=aux->left;
+        else if(subtree_root->x<aux->x)
+            aux->left=subtree_root;
+        else if(subtree_root->x>aux->x && aux->right)
+            aux=aux->right;
+        else
+            aux->right=subtree_root;
+    }
+}
+
+void print(node* root){
+    if(!root)
+        return;
+    
+    linked_list* q=calloc(1,sizeof(linked_list));
+    if(!q)  
+        return;
+
+    push(q,root);
+    
+    while(!empty(q)){
+        root=q->front->ptr;
+
+        #ifndef TESTS_MACRO 
+            printf("%d ",q->front->ptr->x);
+        #else
+            sprintf(test_buf_ptr,"%d ",q->front->ptr->x);
+            test_buf_ptr=strchr(test_buf,'\0');
+        #endif
+
+        pop(q);
+
+        if(root->left)
+            push(q,root->left);
+        if(root->right)
+            push(q,root->right);
+    }
+
+    #ifndef TESTS_MACRO
+    printf("\n");
+    #endif
+
+    free(q);
 }
 
 void test_clear(){
@@ -192,7 +294,7 @@ void test_insert(){
     assert(ft_entry);
     ft_entry->x=10; 
 
-    insert(root,ft_entry);
+    insert(&root,ft_entry);
     assert(root->right==ft_entry);
 
     node* sd_entry_root=calloc(1,sizeof(node));
@@ -209,7 +311,7 @@ void test_insert(){
     sd_entry_left->x=2;
     sd_entry_right->x=3;
 
-    insert(root,sd_entry_root);
+    insert(&root,sd_entry_root);
     assert(root->left==sd_entry_root);
     assert(root->left->left==sd_entry_left);
     assert(root->left->right==sd_entry_right);
@@ -218,11 +320,71 @@ void test_insert(){
     assert(td_entry);
     td_entry->x=6;
 
-    insert(root,td_entry);
+    insert(&root,td_entry);
     assert(root->right->left==td_entry);
 
     clear(&root);
+
+    node* fh_entry=calloc(1,sizeof(node));
+    assert(fh_entry);
+    
+    insert(&root,fh_entry);
+    assert(root==fh_entry);
+
+    clear(&root);
 }   
+
+void test_print(){
+    node* root=malloc(sizeof(node));
+    assert(root);
+    root->x=15;
+    
+    root->left=malloc(sizeof(node));
+    assert(root->left);
+    root->right=malloc(sizeof(node));
+    assert(root->right);
+
+    root->left->x=12;
+    root->right->x=17;
+
+    root->left->left=calloc(1,sizeof(node));
+    assert(root->left->left);
+    root->left->right=calloc(1,sizeof(node));
+    assert(root->left->right);
+    root->right->left=calloc(1,sizeof(node));
+    assert(root->right->left);
+    root->right->right=calloc(1,sizeof(node));
+    assert(root->right->right);
+
+    root->left->left->x=8;
+    root->left->right->x=13;
+    root->right->left->x=16;
+    root->right->right->x=28;
+
+    #ifdef TESTS_MACRO
+    char expected_first[]="15 12 17 8 13 16 28";
+    print(root);
+    assert(strstr(test_buf,expected_first));
+    buf_flush(test_buf,MAX_BUF_SIZE);
+    test_buf_ptr=test_buf;
+
+    clear(&root->right->right);
+    char expected_second[]="15 12 17 8 13 16";
+    print(root);
+    assert(strstr(test_buf,expected_second));
+    buf_flush(test_buf,MAX_BUF_SIZE);
+    test_buf_ptr=test_buf;
+
+    clear(&root->left);
+    char expected_third[]="15 17 16";
+    print(root);
+    assert(strstr(test_buf,expected_third));
+    buf_flush(test_buf,MAX_BUF_SIZE);
+    test_buf_ptr=test_buf;
+    #endif
+
+    clear(&root);
+}
 
 int main(void){
 
@@ -230,6 +392,7 @@ int main(void){
     test_clear();
     test_height();
     test_insert();
+    test_print();
 
     return 0;
 }

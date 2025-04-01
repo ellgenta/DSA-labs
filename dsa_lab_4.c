@@ -6,8 +6,17 @@
 #define TESTS_MACRO
 #define MAX_BUF_SIZE    100
 
+#ifdef TESTS_MACRO
+
 static char test_buf[MAX_BUF_SIZE]={0};
 static char* test_buf_ptr=test_buf;
+
+void buf_flush(char* buf_ptr,size_t buf_size){
+    for(int i=0;i<buf_size && buf_ptr[i];++i)
+        buf_ptr[i]='\0';
+}
+
+#endif
 
 typedef struct _node{
     int x;
@@ -72,11 +81,6 @@ bool empty(linked_list* queue){
         return false;
 }
 
-void buf_flush(char* buf_ptr,size_t buf_size){
-    for(int i=0;i<buf_size;++i)
-        buf_ptr[i]='\0';
-}
-
 void clear(node** root){
     if(*root==NULL)
         return;
@@ -127,7 +131,6 @@ void insert(node** root,node* subtree_root){
 
     if(find(*root,subtree_root->x))
         return;
-    //subtree-root value already makes part of the initial tree values
 
     node* aux=*root;
 
@@ -205,7 +208,7 @@ void test_find(){
     node* root=malloc(sizeof(node));
     assert(root);
     root->x=15;
-    
+
     root->left=malloc(sizeof(node));
     assert(root->left);
     root->right=malloc(sizeof(node));
@@ -238,12 +241,10 @@ void test_find(){
     assert(find(root,9)==NULL);
 
     clear(&root->right->right);
-
     assert(find(root,28)==NULL);
     assert(find(root,16)==root->right->left);
 
     clear(&root->left);
-
     assert(find(root,8)==NULL);
     assert(find(root,13)==NULL);
     assert(find(root,12)==NULL);
@@ -290,46 +291,43 @@ void test_insert(){
     assert(root);
     root->x=5;
 
-    node* ft_entry=calloc(1,sizeof(node));
-    assert(ft_entry);
-    ft_entry->x=10; 
+    node* first_case=calloc(1,sizeof(node));
+    assert(first_case);
+    first_case->x=10; 
 
-    insert(&root,ft_entry);
-    assert(root->right==ft_entry);
+    insert(&root,first_case);
+    assert(root->right==first_case);
 
-    node* sd_entry_root=calloc(1,sizeof(node));
-    assert(sd_entry_root);
-    node* sd_entry_left=calloc(1,sizeof(node));
-    assert(sd_entry_left);
-    node* sd_entry_right=calloc(1,sizeof(node));
-    assert(sd_entry_right);
+    node* second_case=calloc(1,sizeof(node));
+    assert(second_case);
+    second_case->left=calloc(1,sizeof(node));
+    assert(second_case->left);
+    second_case->right=calloc(1,sizeof(node));
+    assert(second_case->right);
 
-    sd_entry_root->left=sd_entry_left;
-    sd_entry_root->right=sd_entry_right;
+    second_case->x=4;
+    second_case->left->x=2;
+    second_case->right->x=3;
 
-    sd_entry_root->x=4;
-    sd_entry_left->x=2;
-    sd_entry_right->x=3;
+    insert(&root,second_case);
+    assert(root->left==second_case);
+    assert(root->left->left==second_case->left);
+    assert(root->left->right==second_case->right);
 
-    insert(&root,sd_entry_root);
-    assert(root->left==sd_entry_root);
-    assert(root->left->left==sd_entry_left);
-    assert(root->left->right==sd_entry_right);
+    node* third_case=calloc(1,sizeof(node));
+    assert(third_case);
+    third_case->x=6;
 
-    node* td_entry=calloc(1,sizeof(node));
-    assert(td_entry);
-    td_entry->x=6;
-
-    insert(&root,td_entry);
-    assert(root->right->left==td_entry);
+    insert(&root,third_case);
+    assert(root->right->left==third_case);
 
     clear(&root);
 
-    node* fh_entry=calloc(1,sizeof(node));
-    assert(fh_entry);
+    node* fourth_case=calloc(1,sizeof(node));
+    assert(fourth_case);
     
-    insert(&root,fh_entry);
-    assert(root==fh_entry);
+    insert(&root,fourth_case);
+    assert(root==fourth_case);
 
     clear(&root);
 }   
@@ -361,7 +359,7 @@ void test_print(){
     root->right->left->x=16;
     root->right->right->x=28;
 
-    #ifdef TESTS_MACRO
+    #ifdef  TESTS_MACRO
     char expected_first[]="15 12 17 8 13 16 28";
     print(root);
     assert(strstr(test_buf,expected_first));

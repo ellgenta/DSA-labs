@@ -94,7 +94,7 @@ void clear(node** root){
         *root=NULL;
         free(aux_root);
     }
-    
+
     return;
 }
 
@@ -118,7 +118,7 @@ int height(node* root){
     int r_height=1;
 
     l_height+=height(root->left);
-    r_height+=height(root->right); 
+    r_height+=height(root->right);
 
     return l_height>r_height ? l_height : r_height;
 }
@@ -129,8 +129,8 @@ void insert(node** root,node* subtree_root){
         return;
     }
 
-    if(find(*root,subtree_root->x))
-        return;
+    //if(find(*root,subtree_root->x))
+    //    return;
 
     node* aux=*root;
 
@@ -141,25 +141,27 @@ void insert(node** root,node* subtree_root){
             aux->left=subtree_root;
         else if(subtree_root->x>aux->x && aux->right)
             aux=aux->right;
-        else
+        else if(subtree_root->x>aux->x)
             aux->right=subtree_root;
+        else
+            return;
     }
 }
 
 void print(node* root){
     if(!root)
         return;
-    
+
     linked_list* q=calloc(1,sizeof(linked_list));
-    if(!q)  
+    if(!q)
         return;
 
     push(q,root);
-    
+
     while(!empty(q)){
         root=q->front->ptr;
 
-        #ifndef TESTS_MACRO 
+        #ifndef TESTS_MACRO
             printf("%d ",q->front->ptr->x);
         #else
             sprintf(test_buf_ptr,"%d ",q->front->ptr->x);
@@ -257,7 +259,7 @@ void test_find(){
 void test_height(){
     node* root=calloc(1,sizeof(node));
     assert(root);
-    
+
     root->left=calloc(1,sizeof(node));
     assert(root->left);
     root->right=calloc(1,sizeof(node));
@@ -293,7 +295,7 @@ void test_insert(){
 
     node* first_case=calloc(1,sizeof(node));
     assert(first_case);
-    first_case->x=10; 
+    first_case->x=10;
 
     insert(&root,first_case);
     assert(root->right==first_case);
@@ -307,7 +309,7 @@ void test_insert(){
 
     second_case->x=4;
     second_case->left->x=2;
-    second_case->right->x=3;
+    second_case->right->x=7;
 
     insert(&root,second_case);
     assert(root->left==second_case);
@@ -325,18 +327,21 @@ void test_insert(){
 
     node* fourth_case=calloc(1,sizeof(node));
     assert(fourth_case);
-    
+    fourth_case->x=4;
+
     insert(&root,fourth_case);
-    assert(root==fourth_case);
+    assert(root->left->x==4);
+    assert(root->left->left->x==2);
+    assert(root->left->right->x==7);
 
     clear(&root);
-}   
+}
 
 void test_print(){
     node* root=malloc(sizeof(node));
     assert(root);
     root->x=15;
-    
+
     root->left=malloc(sizeof(node));
     assert(root->left);
     root->right=malloc(sizeof(node));

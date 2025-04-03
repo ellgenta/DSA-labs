@@ -94,7 +94,7 @@ void clear(node** root){
         *root=NULL;
         free(aux_root);
     }
-
+    
     return;
 }
 
@@ -118,50 +118,37 @@ int height(node* root){
     int r_height=1;
 
     l_height+=height(root->left);
-    r_height+=height(root->right);
+    r_height+=height(root->right); 
 
     return l_height>r_height ? l_height : r_height;
 }
 
 void insert(node** root,node* subtree_root){
-    if(!*root){
+    if(!*root)
         *root=subtree_root;
+
+    if((*root)->x>subtree_root->x)
+        insert(&(*root)->left,subtree_root);
+    else if((*root)->x<subtree_root->x)
+        insert(&(*root)->right,subtree_root);
+    else
         return;
-    }
-
-    //if(find(*root,subtree_root->x))
-    //    return;
-
-    node* aux=*root;
-
-    while(aux->left!=subtree_root && aux->right!=subtree_root){
-        if(subtree_root->x<aux->x && aux->left)
-            aux=aux->left;
-        else if(subtree_root->x<aux->x)
-            aux->left=subtree_root;
-        else if(subtree_root->x>aux->x && aux->right)
-            aux=aux->right;
-        else if(subtree_root->x>aux->x)
-            aux->right=subtree_root;
-        else
-            return;
-    }
 }
 
 void print(node* root){
     if(!root)
         return;
-
+    
     linked_list* q=calloc(1,sizeof(linked_list));
-    if(!q)
+    if(!q)  
         return;
 
     push(q,root);
-
+    
     while(!empty(q)){
         root=q->front->ptr;
 
-        #ifndef TESTS_MACRO
+        #ifndef TESTS_MACRO 
             printf("%d ",q->front->ptr->x);
         #else
             sprintf(test_buf_ptr,"%d ",q->front->ptr->x);
@@ -259,7 +246,7 @@ void test_find(){
 void test_height(){
     node* root=calloc(1,sizeof(node));
     assert(root);
-
+    
     root->left=calloc(1,sizeof(node));
     assert(root->left);
     root->right=calloc(1,sizeof(node));
@@ -289,59 +276,54 @@ void test_height(){
 }
 
 void test_insert(){
-    node* root=calloc(1,sizeof(node));
-    assert(root);
-    root->x=5;
+    node* first=calloc(1,sizeof(node));
+    assert(first);
+    node* second=calloc(1,sizeof(node));
+    assert(second);
+    node* third=calloc(1,sizeof(node));
+    assert(third);
+    node* fourth=calloc(1,sizeof(node));
+    assert(fourth);
 
-    node* first_case=calloc(1,sizeof(node));
-    assert(first_case);
-    first_case->x=10;
+    first->x=5;
+    second->x=7;
+    third->x=2;
+    fourth->x=6;
 
-    insert(&root,first_case);
-    assert(root->right==first_case);
+    node* root=NULL;
 
-    node* second_case=calloc(1,sizeof(node));
-    assert(second_case);
-    second_case->left=calloc(1,sizeof(node));
-    assert(second_case->left);
-    second_case->right=calloc(1,sizeof(node));
-    assert(second_case->right);
+    insert(&root,first);
+    assert(root==first);
 
-    second_case->x=4;
-    second_case->left->x=2;
-    second_case->right->x=7;
+    insert(&root,second);
+    assert(root==first);
+    assert(root->right==second);
 
-    insert(&root,second_case);
-    assert(root->left==second_case);
-    assert(root->left->left==second_case->left);
-    assert(root->left->right==second_case->right);
+    insert(&root,third);
+    assert(root==first);
+    assert(root->right==second);
+    assert(root->left==third);
 
-    node* third_case=calloc(1,sizeof(node));
-    assert(third_case);
-    third_case->x=6;
+    insert(&root,fourth);
+    assert(root==first);
+    assert(root->right==second);
+    assert(root->left==third);
+    assert(root->right->left==fourth);
 
-    insert(&root,third_case);
-    assert(root->right->left==third_case);
-
-    clear(&root);
-
-    node* fourth_case=calloc(1,sizeof(node));
-    assert(fourth_case);
-    fourth_case->x=4;
-
-    insert(&root,fourth_case);
-    assert(root->left->x==4);
-    assert(root->left->left->x==2);
-    assert(root->left->right->x==7);
+    insert(&root,first);
+    assert(root==first);
+    assert(root->right==second);
+    assert(root->left==third);
+    assert(root->right->left==fourth);
 
     clear(&root);
-}
+}   
 
 void test_print(){
     node* root=malloc(sizeof(node));
     assert(root);
     root->x=15;
-
+    
     root->left=malloc(sizeof(node));
     assert(root->left);
     root->right=malloc(sizeof(node));

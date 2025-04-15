@@ -7,6 +7,17 @@ typedef enum {otr,ond} role;
 
 char precedence[]="+-\t*/\t()"; 
 
+/*
+considering this to be a returning-type for the shunting_yard(), where res stands for the final result (of calculations), 
+and rpn_exp stands for a string, that will store corresponding expression in reverse Polish notation (so the output queue will be transformed into a string)
+
+typedef struct _exp_t{
+    int res;
+    char* rpn_exp;
+} exp_t;
+
+*/
+
 typedef struct _node{
     int data;
     role r;

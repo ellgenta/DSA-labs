@@ -1,15 +1,20 @@
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 
 typedef enum {false,true} bool;
+typedef enum {otr,ond} role;
+
+char precedence[]="+-\t*/\t()"; 
 
 typedef struct _node{
-    char data;
+    int data;
+    role r;
     struct _node* next;
     struct _node* prev;
 } node;
 
-void push(node** top,char value){
+void push(node** top,int value){
     node* new_top=calloc(1,sizeof(node));
     if(!new_top)
         return;
@@ -35,7 +40,7 @@ void pop(node** top){
     free(aux);
 }
 
-void enqueue(node** head,char value){
+void enqueue(node** head,int value){
     node* new_rear=calloc(1,sizeof(node));
     if(!new_rear)
         return;
@@ -68,6 +73,59 @@ void dequeue(node** head){
 
 bool empty(node** head){
     return *head ? false : true;
+}
+
+bool operator(char* sym){
+    strchr(precedence,*sym) ? true : false;
+}
+
+bool operand(char* sym){
+    if(*sym>='0' && *sym<='9')
+        return true;
+    else 
+        return false;
+}
+
+bool compatible(node** top,char sym){
+    if(!*top)
+        return true;
+
+    if(strchr(precedence,sym)-strchr(precedence,(*top)->data)>1)
+        return false;
+    else 
+        return true;
+}
+
+void shunting_yard(char* input){
+    node* head=NULL;
+    node* top=NULL;
+
+    char* ptr_input=input;
+    short ops_count;
+
+    while(*ptr_input){
+        if(operator(ptr_input)){
+            while(top && compatible(&top,*ptr_input)){
+                enqueue(&head,top->data);
+                pop(&top);
+            }
+            push(&top,*ptr_input);
+            top->r=otr;
+            //continue;
+        }
+        else if(operand(ptr_input)){
+            enqueue(&head,atoi(ptr_input));
+            head->r=ond;
+        }
+
+        ++ptr_input;
+    }
+
+    while(!empty(&top)){
+        enqueue(&head,top->data);
+        pop(&top);
+        head->r=otr;
+    }
 }
 
 int main(void)

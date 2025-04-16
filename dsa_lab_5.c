@@ -1,22 +1,19 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#include <stdio.h>
+
+#define MAX_LEN 100
 
 typedef enum {false,true} bool;
 typedef enum {otr,ond} role;
 
-char precedence[]="+-\t*/\t()"; 
-
-/*
-considering this to be a returning-type for the shunting_yard(), where res stands for the final result (of calculations), 
-and rpn_exp stands for a string, that will store corresponding expression in reverse Polish notation (so the output queue will be transformed into a string)
+char precedence[]="+-\t*/"; 
 
 typedef struct _exp_t{
     int res;
     char* rpn_exp;
 } exp_t;
-
-*/
 
 typedef struct _node{
     int data;
@@ -82,6 +79,10 @@ void dequeue(node** head){
     free(aux);
 }
 
+int abs(int x){
+    return x<0 ? -x : x;
+}
+
 bool empty(node** head){
     return *head ? false : true;
 }
@@ -107,12 +108,52 @@ bool compatible(node** top,char sym){
         return true;
 }
 
-void shunting_yard(char* input){
+node* tail(node** head){
+    node* aux=*head;
+    while(aux->next)
+        aux=aux->next;
+    
+    return aux;
+}
+
+void copy(node** head,char* str){
+    node* aux=*head;
+    char* ptr_str=str;
+
+    while(aux && ptr_str){
+        if(aux->r==ond)
+            sprintf(ptr_str,"%d ",aux->data);
+        else
+            sprintf(ptr_str,"%c ",aux->data);
+
+        ptr_str=strchr(ptr_str,'\0');
+        aux=aux->next;
+    }
+}
+
+int perform(node** top,node** head){
+    int res=0;
+
+    if((*head)->data=='+')
+        res=(*top)->prev->data+(*top)->data;
+    else if((*head)->data=='-')
+        res=(*top)->prev->data-(*top)->data;
+    else if((*head)->data=='*')
+        res=(*top)->prev->data*(*top)->data;
+    else if((*head)->data=='/')
+        res=(*top)->prev->data/(*top)->data;
+
+    pop(top);
+    pop(top);
+
+    push(top,res);
+}
+
+exp_t shunting_yard(char* input){
     node* head=NULL;
     node* top=NULL;
 
     char* ptr_input=input;
-    short ops_count;
 
     while(*ptr_input){
         if(operator(ptr_input)){
@@ -122,12 +163,26 @@ void shunting_yard(char* input){
             }
             push(&top,*ptr_input);
             top->r=otr;
-            //continue;
         }
         else if(operand(ptr_input)){
             enqueue(&head,atoi(ptr_input));
-            head->r=ond;
+            tail(&head)->r=ond;
+            while(operand(ptr_input+1))
+                ++ptr_input;
         }
+        else if(*ptr_input=='(')
+            push(&top,*ptr_input);
+        else if(*ptr_input==')'){
+            while(!empty(&top)){
+                if(top->data!='(' && top->data!=')'){
+                    enqueue(&head,top->data);
+                    tail(&head)->r=otr;
+                }
+                pop(&top);
+            }
+        }
+        else if(*ptr_input!=' ')
+            return (exp_t){0,""};           
 
         ++ptr_input;
     }
@@ -135,11 +190,54 @@ void shunting_yard(char* input){
     while(!empty(&top)){
         enqueue(&head,top->data);
         pop(&top);
-        head->r=otr;
+        node* aux=head;
+        tail(&head)->r=otr;
     }
+
+    node* calc_top=NULL;
+    int res=0;
+
+    char postfix[MAX_LEN]={0};
+    copy(&head,postfix);
+
+    while(!empty(&head)){
+        if(head->r==ond)
+            push(&calc_top,head->data);
+        else
+            perform(&calc_top,&head);
+        
+        dequeue(&head);
+    }
+
+    res=calc_top->data;
+    pop(&calc_top);
+
+    return (exp_t){res,postfix};
+}
+
+void test_shunting_yard(){
+    assert(shunting_yard("1+2*3").res==7);
+    assert(strpbrk(shunting_yard("1+2*3").rpn_exp,"1 2 3 * +"));
+
+    assert(shunting_yard("1+2+3").res==6);
+    assert(strpbrk(shunting_yard("1+2+3").rpn_exp,"1 2 + 3 +"));
+
+    assert(shunting_yard("1+2-3").res==0);
+    assert(strpbrk(shunting_yard("1+2+3").rpn_exp,"1 2 + 3 -"));
+
+    assert(shunting_yard("1+2+a").res==0);
+    assert(!strcmp(shunting_yard("1+2+a").rpn_exp,""));
+
+    assert(shunting_yard("(1 + 2 )* 3").res==9);
+    assert(strpbrk(shunting_yard("(1+2)*3").rpn_exp,"1 2 + 3 *"));
+
+    assert(shunting_yard("(6+8)/2+3*9").res==34);
+    assert(strpbrk(shunting_yard("(6+8)/2+3*9").rpn_exp,"6 8 + 2 / 3 9 * +"));
 }
 
 int main(void)
 {
+    test_shunting_yard();
+
     return 0;
 }

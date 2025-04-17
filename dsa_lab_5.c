@@ -190,7 +190,6 @@ exp_t shunting_yard(char* input){
     while(!empty(&top)){
         enqueue(&head,top->data);
         pop(&top);
-        node* aux=head;
         tail(&head)->r=otr;
     }
 
@@ -217,22 +216,25 @@ exp_t shunting_yard(char* input){
 
 void test_shunting_yard(){
     assert(shunting_yard("1+2*3").res==7);
-    assert(strpbrk(shunting_yard("1+2*3").rpn_exp,"1 2 3 * +"));
+    assert(!strcmp(shunting_yard("1+2*3").rpn_exp,"1 2 3 * + "));
 
     assert(shunting_yard("1+2+3").res==6);
-    assert(strpbrk(shunting_yard("1+2+3").rpn_exp,"1 2 + 3 +"));
+    assert(!strcmp(shunting_yard("1+2+3").rpn_exp,"1 2 + 3 + "));
 
     assert(shunting_yard("1+2-3").res==0);
-    assert(strpbrk(shunting_yard("1+2+3").rpn_exp,"1 2 + 3 -"));
+    assert(!strcmp(shunting_yard("1+2-3").rpn_exp,"1 2 + 3 - "));
 
     assert(shunting_yard("1+2+a").res==0);
     assert(!strcmp(shunting_yard("1+2+a").rpn_exp,""));
 
     assert(shunting_yard("(1 + 2 )* 3").res==9);
-    assert(strpbrk(shunting_yard("(1+2)*3").rpn_exp,"1 2 + 3 *"));
+    assert(!strcmp(shunting_yard("(1+2)*3").rpn_exp,"1 2 + 3 * "));
 
     assert(shunting_yard("(6+8)/2+3*9").res==34);
-    assert(strpbrk(shunting_yard("(6+8)/2+3*9").rpn_exp,"6 8 + 2 / 3 9 * +"));
+    assert(!strcmp(shunting_yard("(6+8)/2+3*9").rpn_exp,"6 8 + 2 / 3 9 * + "));
+
+    assert(shunting_yard("2+2-2*2").res==0);
+    assert(!strcmp(shunting_yard("2+2-2*2").rpn_exp,"2 2 + 2 2 * - "));
 }
 
 int main(void)

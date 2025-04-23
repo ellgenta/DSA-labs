@@ -37,24 +37,15 @@ typedef struct _return_type{
 */
 
 return_type size(arraylist* ar){
-    return_type res={0,0};
-
-    if(ar->size-ar->data<0){
-        res.returned_value=NAN;
-        res.error_code=-3;
-    }
+    if(ar->size-ar->data<0)
+        return (return_type){-3,NAN};
     else
-        res.returned_value=ar->size-ar->data;
-
-    return res;
+        return (return_type){0,ar->size-ar->data};
 }
 
 return_type push_back(arraylist* ar,int value){
-    return_type res={0,0};
-
-    if(size(ar).error_code){
+    if(size(ar).error_code)
         return (return_type){-3,NAN};
-    }
 
     int length=size(ar).returned_value;
 
@@ -63,10 +54,8 @@ return_type push_back(arraylist* ar,int value){
     if(!cap){
         if(!ar->data){
             ar->data=malloc(sizeof(int));
-            if(!ar->data){
-                res.error_code=-1;
-                return res;
-            }
+            if(!ar->data)
+                return (return_type){-1,NAN};
         }
         ar->capacity=ar->data+1;
         ar->size=ar->data+1;
@@ -74,10 +63,8 @@ return_type push_back(arraylist* ar,int value){
     }else{
         if(ar->capacity==ar->size){
             ar->data=realloc(ar->data,cap*2*sizeof(int));
-            if(!ar->data){
-                res.error_code=-1;
-                return res;
-            }
+            if(!ar->data)
+                return (return_type){-1,NAN};
             ar->capacity=ar->data+cap*2;
             ar->size=ar->data+length;
             *(ar->size++)=value;
@@ -86,52 +73,40 @@ return_type push_back(arraylist* ar,int value){
             *(ar->size++)=value;
     }
 
-    return res;
+    return (return_type){0,0};
 }
 
 return_type pop_back(arraylist* ar){
-    return_type res={0,0};
-
-    if(size(ar).error_code){
+    if(size(ar).error_code)
         return (return_type){-3,NAN};
-    }
 
     int length=size(ar).returned_value;
 
     int cap=ar->capacity-ar->data;
 
-    if(ar->size==ar->data){
-        res.error_code=-4;
-        return res;
-    }
+    if(ar->size==ar->data)
+        return (return_type){-4,NAN};
 
     --ar->size;
 
-    return res;
+    return (return_type){0,0};
 }
 
 return_type insert(arraylist* ar,int indx,int value){
-    return_type res={0,0};
-
-    if(size(ar).error_code){
+    if(size(ar).error_code)
         return (return_type){-3,NAN};
-    }
 
     int length=size(ar).returned_value;
 
     int cap=ar->capacity-ar->data;
 
-    if(indx>=length || indx<0){
-        res.error_code=-2;
-        return res;
-    }
+    if(indx>=length || indx<0)
+        return (return_type){-2,NAN};
 
     if(!ar->data && !indx){
         ar->data=malloc(sizeof(int));
-        if(!ar->data){
-            res.error_code=-1;
-            return res;
-        }
+        if(!ar->data)
+            return (return_type){-1,NAN};
         ar->capacity=ar->data+1;
         ar->size=ar->data+1;
         ar->data[0]=value;
@@ -140,10 +115,8 @@ return_type insert(arraylist* ar,int indx,int value){
         ++ar->size;
     }else if(ar->size==ar->capacity){
         ar->data=realloc(ar->data,cap*2*sizeof(int));
-        if(!ar->data){
-            res.error_code=-1;
-            return res;
-        }
+        if(!ar->data)
+            return (return_type){-1,NAN};
         ar->size=ar->data+length;
         ar->capacity=ar->data+cap*2;
     }
@@ -157,103 +130,75 @@ return_type insert(arraylist* ar,int indx,int value){
     ++ar->size;
     ar->data[cr_indx+1]=value;
 
-    return res;
+    return (return_type){0,0};
 }
 
 return_type at(arraylist* ar,int indx){
-    return_type res={0,0};
-
-    if(size(ar).error_code){
+    if(size(ar).error_code)
         return (return_type){-3,NAN};
-    }
 
     int length=size(ar).returned_value;
 
-    int cap=ar->capacity-ar->data;
+    if(!length)
+        return (return_type){-4,NAN};
 
-    if(!length){
-        res.error_code=-4;
-        return res;
-    }
+    if(indx<0 || indx>=length)
+        return (return_type){-2,NAN};
 
-    if(indx<0 || indx>=length){
-        res.error_code=-2;
-        return res;
-    }
-
-    res.returned_value=ar->data[indx];
-    return res;
+    return (return_type){0,ar->data[indx]};
 }
 
 return_type initialize(arraylist *ar){
-    return_type res={0,0};
-
     ar->data=malloc(sizeof(int));
 
-    if(!ar->data){
-        res.error_code=-1;
-        return res;
-    }
+    if(!ar->data)
+        return (return_type){-1,NAN};
 
     ar->size=ar->data;
     ar->capacity=ar->data+1;
 
-    return res;
+    return (return_type){0,0};
 }
 
 return_type delete(arraylist* ar,int indx){
-    return_type res={0,0};
-
-    if(size(ar).error_code){
+    if(size(ar).error_code)
         return (return_type){-3,NAN};
-    }
 
     int length=size(ar).returned_value;
 
+    if(!length)
+        return (return_type){-4,NAN};   
+
+    if(indx<0 || indx>=length)
+        return (return_type){-2,NAN};
+    
     int cap=ar->capacity-ar->data;
-
-    if(indx<0 || indx>=length){
-        res.error_code=-2;
-        return res;
-    }
-
-    if(!length){
-        res.error_code=-4;
-        return res;
-    }
 
     for(int i=indx;i<length-1;++i)
         ar->data[i]=ar->data[i+1];
     --ar->size;
 
-    return res;
+    return (return_type){0,0};
 }
 
 return_type resize(arraylist *ar,int newsize){
-    return_type res={0,0};
-
-    if(size(ar).error_code){
+    if(size(ar).error_code)
         return (return_type){-3,NAN};
-    }
 
     int length=size(ar).returned_value;
 
     int cap=ar->capacity-ar->data;
 
     if(newsize==length)
-        return res;
+        return (return_type){0,0};
 
-    if(newsize<0){
-        res.error_code=-2;
-        return res;
-    }
+    if(newsize<0)
+        return (return_type){-2,NAN};
 
     if(newsize>cap){
         ar->data=realloc(ar->data,newsize);
-        if(!ar->data){
-            res.error_code=-1;
-            return res;
-        }
+        if(!ar->data)
+            return (return_type){-1,NAN};
         ar->capacity=ar->data+newsize;
         ar->size=ar->capacity;
         for(int i=length;i<newsize;++i)
@@ -265,22 +210,18 @@ return_type resize(arraylist *ar,int newsize){
     }else
         ar->size=ar->data+newsize;
 
-    return res;
+    return (return_type){0,0};
 }
 
 return_type clear(arraylist* ar){
-    return_type res={0,0};
-
     ar->data=realloc(ar->data,sizeof(int));
-    if(!ar->data){
-        res.error_code=-1;
-        return res;
-    }
+    if(!ar->data)
+        return (return_type){-1,NAN};
 
     ar->capacity=ar->data ? ar->data+1 : NULL;
     ar->size=ar->data;
 
-    return res;
+    return (return_type){0,0};
 }
 
 void test_push_back() {
@@ -375,8 +316,8 @@ void test_at(){
     assert(tmp);
 
     arraylist a={tmp,tmp+1,tmp+1};
-    a.data[0]=0;
-    assert(at(&a,0).returned_value==0);
+    a.data[0]=1;
+    assert(at(&a,0).returned_value==1);
     assert(at(&a,1).error_code==-2);
     assert(at(&a,-1).error_code==-2);
 

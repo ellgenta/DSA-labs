@@ -10,6 +10,17 @@ typedef struct _array
 
 #define NAN 0
 
+/*
+
+    Other option is to define NAN this way:
+    
+        #define NAN ""
+
+    By this definition, you guarantee that NAN will represent different (random) value every time you compile the program. 
+    On the other hand, it implies that NAN would have to be casted to int to be used (since the return_type.returned_value is an integer). 
+
+*/
+
 typedef struct _return_type{
     int error_code;
     int returned_value;
@@ -41,10 +52,11 @@ return_type size(arraylist* ar){
 return_type push_back(arraylist* ar,int value){
     return_type res={0,0};
 
-    int length=size(ar).returned_value;
-    if(length==NAN){
-        return size(ar);
+    if(size(ar).error_code){
+        return (return_type){-3,NAN};
     }
+
+    int length=size(ar).returned_value;
 
     int cap=ar->capacity-ar->data;
 
@@ -80,10 +92,11 @@ return_type push_back(arraylist* ar,int value){
 return_type pop_back(arraylist* ar){
     return_type res={0,0};
 
-    int length=size(ar).returned_value;
-    if(length==NAN){
-        return size(ar);
+    if(size(ar).error_code){
+        return (return_type){-3,NAN};
     }
+
+    int length=size(ar).returned_value;
 
     int cap=ar->capacity-ar->data;
 
@@ -100,10 +113,11 @@ return_type pop_back(arraylist* ar){
 return_type insert(arraylist* ar,int indx,int value){
     return_type res={0,0};
 
-    int length=size(ar).returned_value;
-    if(length==NAN){
-        return size(ar);
+    if(size(ar).error_code){
+        return (return_type){-3,NAN};
     }
+
+    int length=size(ar).returned_value;
 
     int cap=ar->capacity-ar->data;
 
@@ -149,10 +163,11 @@ return_type insert(arraylist* ar,int indx,int value){
 return_type at(arraylist* ar,int indx){
     return_type res={0,0};
 
-    int length=size(ar).returned_value;
-    if(length==NAN){
-        return size(ar);
+    if(size(ar).error_code){
+        return (return_type){-3,NAN};
     }
+
+    int length=size(ar).returned_value;
 
     int cap=ar->capacity-ar->data;
 
@@ -189,10 +204,11 @@ return_type initialize(arraylist *ar){
 return_type delete(arraylist* ar,int indx){
     return_type res={0,0};
 
-    int length=size(ar).returned_value;
-    if(length==NAN){
-        return size(ar);
+    if(size(ar).error_code){
+        return (return_type){-3,NAN};
     }
+
+    int length=size(ar).returned_value;
 
     int cap=ar->capacity-ar->data;
 
@@ -216,10 +232,11 @@ return_type delete(arraylist* ar,int indx){
 return_type resize(arraylist *ar,int newsize){
     return_type res={0,0};
 
-    int length=size(ar).returned_value;
-    if(length==NAN){
-        return size(ar);
+    if(size(ar).error_code){
+        return (return_type){-3,NAN};
     }
+
+    int length=size(ar).returned_value;
 
     int cap=ar->capacity-ar->data;
 

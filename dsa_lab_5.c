@@ -179,6 +179,45 @@ bool find(node** top,char key){
     return false;
 }
 
+bool close_parantheses(node** top,node** head){
+    if(!*top)
+        return false;
+
+    while(*top){
+        if((*top)->data==')')
+            return false;
+        if((*top)->data!='('){
+            enqueue(head,(*top)->data);
+            tail(head)->r=otr;
+            pop(top);
+        }
+        else{
+            pop(top);
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+int calculate(node** top,node** head){
+    int res=0;
+
+    while(!empty(head)){
+        if((*head)->r==ond)
+            push(top,(*head)->data);
+        else
+            perform(top,head);
+        
+        dequeue(head);
+    }
+
+    res=(*top)->data;
+    pop(top);
+
+    return res;
+}
+
 exp_t shunting_yard(char* input){
     node* head=NULL;
     node* top=NULL;
@@ -186,6 +225,10 @@ exp_t shunting_yard(char* input){
     char* ptr_input=input;
 
     while(*ptr_input){
+        if(*ptr_input==' ' || *ptr_input=='\t'){
+            ++ptr_input;
+            continue;
+        }
         if(operator(ptr_input)){
             while(top && compatible(&top,*ptr_input)){
                 enqueue(&head,top->data);
@@ -203,24 +246,16 @@ exp_t shunting_yard(char* input){
         else if(*ptr_input=='(')
             push(&top,*ptr_input);
         else if(*ptr_input==')'){
-            while(top->data!='('){
-                if(top->data!='('){
-                    enqueue(&head,top->data);
-                    tail(&head)->r=otr;
-                }
-                pop(&top);
-                if(!top)
-                    return (exp_t){0,""};
-            }
-            pop(&top);
+            if(close_parantheses(&top,&head)==false)
+                return (exp_t){0,""};  
         }
-        else if(*ptr_input!=' ')
+        else 
             return (exp_t){0,""};           
 
         ++ptr_input;
     }
 
-    if(find(&top,')') || find(&top,'('))
+    if(find(&top,'(') || find(&top,')'))
         return (exp_t){0,""};
         
     while(!empty(&top)){
@@ -232,24 +267,10 @@ exp_t shunting_yard(char* input){
     if(!valid(&head))
         return (exp_t){0,""};
 
-    //node* top=NULL;
-    int res=0;
-
     char postfix[MAX_LEN]={0};
     copy(&head,postfix);
-
-    while(!empty(&head)){
-        if(head->r==ond)
-            push(&top,head->data);
-        else
-            perform(&top,&head);
-        
-        dequeue(&head);
-    }
-
-    res=top->data;
-    pop(&top);
-
+    int res=calculate(&top,&head);    
+    
     return (exp_t){res,postfix};
 }
 
@@ -292,6 +313,24 @@ void test_shunting_yard(){
 
     assert(shunting_yard("").res==0);
     assert(!strcmp(shunting_yard("").rpn_exp,""));
+
+    assert(shunting_yard("3+\t4").res==7);
+    assert(!strcmp(shunting_yard("3+\t4").rpn_exp,"3 4 + "));
+
+    assert(shunting_yard("\t").res==0);
+    assert(!strcmp(shunting_yard("\t'").rpn_exp,""));
+
+    assert(shunting_yard("2*(1+2*(3+6))").res==38);
+    assert(!strcmp(shunting_yard("2*(1+2*(3+6))").rpn_exp,"2 1 2 3 6 + * + * "));
+
+    assert(shunting_yard("(1+2))").res==0);
+    assert(!strcmp(shunting_yard("(1+2))").rpn_exp,""));
+
+    assert(shunting_yard("(1+2)(").res==0);
+    assert(!strcmp(shunting_yard("(1+2)(").rpn_exp,""));
+
+    assert(shunting_yard("(1)+2+3").res==6);
+    assert(!strcmp(shunting_yard("1+2+3").rpn_exp,"1 2 + 3 + "));
 }
 
 int main(void)

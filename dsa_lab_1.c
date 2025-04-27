@@ -26,6 +26,8 @@ typedef struct _return_type{
     int returned_value;
 } return_type;
 
+typedef enum {false,true} bool;
+
 /*
     exit codes description:
     0  if errors does not occur - default exit code
@@ -37,19 +39,36 @@ typedef struct _return_type{
 */
 
 return_type size(arraylist* ar){
-    if(ar->size-ar->data<0)
+    ssize_t sz=ar->size-ar->data;
+
+    if(sz<0)
         return (return_type){-3,NAN};
     else
-        return (return_type){0,ar->size-ar->data};
+        return (return_type){0,sz};
+}
+
+return_type capacity(arraylist* ar){
+    ssize_t cap=ar->capacity-ar->data;
+
+    if(cap<0)   
+        return (return_type){-3,NAN};
+    else
+        return (return_type){0,cap};
+}
+
+bool valid_boundaries(arraylist* ar){
+    if(ar->capacity-ar->data<0 || ar->size-ar->data<0)
+        return false;
+
+    return true;
 }
 
 return_type push_back(arraylist* ar,int value){
-    if(size(ar).error_code)
+    if(!valid_boundaries(ar))
         return (return_type){-3,NAN};
 
-    int length=size(ar).returned_value;
-
-    int cap=ar->capacity-ar->data;
+    ssize_t length=size(ar).returned_value;
+    ssize_t cap=capacity(ar).returned_value;
 
     if(!cap){
         if(!ar->data){
@@ -77,12 +96,11 @@ return_type push_back(arraylist* ar,int value){
 }
 
 return_type pop_back(arraylist* ar){
-    if(size(ar).error_code)
+    if(!valid_boundaries(ar))
         return (return_type){-3,NAN};
 
-    int length=size(ar).returned_value;
-
-    int cap=ar->capacity-ar->data;
+    ssize_t length=size(ar).returned_value;
+    ssize_t cap=capacity(ar).returned_value;
 
     if(ar->size==ar->data)
         return (return_type){-4,NAN};
@@ -93,12 +111,11 @@ return_type pop_back(arraylist* ar){
 }
 
 return_type insert(arraylist* ar,int indx,int value){
-    if(size(ar).error_code)
+    if(!valid_boundaries(ar))
         return (return_type){-3,NAN};
 
-    int length=size(ar).returned_value;
-
-    int cap=ar->capacity-ar->data;
+    ssize_t length=size(ar).returned_value;
+    ssize_t cap=capacity(ar).returned_value;
 
     if(indx>=length || indx<0)
         return (return_type){-2,NAN};
@@ -134,10 +151,10 @@ return_type insert(arraylist* ar,int indx,int value){
 }
 
 return_type at(arraylist* ar,int indx){
-    if(size(ar).error_code)
+    if(!valid_boundaries(ar))
         return (return_type){-3,NAN};
 
-    int length=size(ar).returned_value;
+    ssize_t length=size(ar).returned_value;
 
     if(!length)
         return (return_type){-4,NAN};
@@ -161,10 +178,10 @@ return_type initialize(arraylist *ar){
 }
 
 return_type delete(arraylist* ar,int indx){
-    if(size(ar).error_code)
+    if(!valid_boundaries(ar))
         return (return_type){-3,NAN};
 
-    int length=size(ar).returned_value;
+    ssize_t length=size(ar).returned_value;
 
     if(!length)
         return (return_type){-4,NAN};   
@@ -182,12 +199,11 @@ return_type delete(arraylist* ar,int indx){
 }
 
 return_type resize(arraylist *ar,int newsize){
-    if(size(ar).error_code)
+    if(!valid_boundaries(ar))
         return (return_type){-3,NAN};
 
-    int length=size(ar).returned_value;
-
-    int cap=ar->capacity-ar->data;
+    ssize_t length=size(ar).returned_value;
+    ssize_t cap=capacity(ar).returned_value;
 
     if(newsize==length)
         return (return_type){0,0};
@@ -247,6 +263,10 @@ void test_push_back() {
     assert(a.capacity-a.data==2);
     assert(a.size-a.data==1);
     assert(a.data[0]==3);
+
+    a.size=a.data-1;
+    assert(push_back(&a,1).error_code==-3);
+    assert(push_back(&a,1).returned_value==NAN);
 
     free(a.data);
 }

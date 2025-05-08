@@ -1,7 +1,10 @@
 #include <stdlib.h> 
 #include <assert.h> 
+#include <string.h>
 
 typedef enum {false,true} bool;
+
+//as an analogue of memcmp() 
 
 bool arcmp(int* first,int* second,int len){
     for(int i=0;i<len;++i){
@@ -73,48 +76,48 @@ void test_heap_sort(){
     int first[10]={7,4,3,5,8,9,2,6,1,0};
     int exp_first[10]={0,1,2,3,4,5,6,7,8,9};
     heap_sort(first,10,ascending);
-    assert(arcmp(first,exp_first,10*sizeof(int))==0);
+    assert(memcmp(first,exp_first,10*sizeof(int))==0);
 
     int second[1]={1};
     int exp_second[1]={1};
     heap_sort(second,1,ascending);
-    assert(arcmp(second,exp_second,1));
+    assert(memcmp(second,exp_second,1*sizeof(int))==0);
 
     int third[10]={0};
     int exp_third[10]={0};
     heap_sort(third,10,ascending);
-    assert(arcmp(third,exp_third,10));
+    assert(memcmp(third,exp_third,10*sizeof(int))==0);
 
     int fourth[10]={-10,85,6,-28,31,0,14,44,9,13};
     int exp_fourth[10]={-28,-10,0,6,9,13,14,31,44,85};
     heap_sort(fourth,10,ascending);
-    assert(arcmp(fourth,exp_fourth,10));
+    assert(memcmp(fourth,exp_fourth,10*sizeof(int))==0);
 
     int fifth[5]={3,2,1,5,6};
     int exp_fifth[5]={3,2,1,5,6};
     heap_sort(fifth,-1,ascending);
-    assert(arcmp(fifth,exp_fifth,5));
+    assert(memcmp(fifth,exp_fifth,5*sizeof(int))==0);
 
     int sixsth[2]={2,1};
     int exp_sixsth[2]={1,2};
     heap_sort(sixsth,2,ascending);
-    assert(arcmp(sixsth,exp_sixsth,2));
+    assert(memcmp(sixsth,exp_sixsth,2*sizeof(int))==0);
 
     int seventh[5]={4,2,0,9,7};
     int exp_seventh[5]={9,7,4,2,0};
     heap_sort(seventh,5,descending);
-    assert(arcmp(seventh,exp_seventh,5));
+    assert(memcmp(seventh,exp_seventh,5*sizeof(int))==0);
 
     int eighth[10]={1,-14,28,-35,89,65,0,62,34,34};
     int exp_eighth[10]={89,65,62,34,34,28,1,0,-14,-35};
     heap_sort(eighth,10,descending);
-    assert(arcmp(eighth,exp_eighth,10));
+    assert(memcmp(eighth,exp_eighth,10*sizeof(int))==0);
 
     heap_sort(second,1,descending);
-    assert(arcmp(second,exp_second,1));
+    assert(memcmp(second,exp_second,1*sizeof(int))==0);
 
     heap_sort(third,10,descending);
-    assert(arcmp(third,exp_third,10));
+    assert(memcmp(third,exp_third,10*sizeof(int))==0);
 }
 
 int main(void)

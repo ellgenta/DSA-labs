@@ -331,6 +331,12 @@ void test_shunting_yard(){
 
     assert(shunting_yard("(1)+2+3").res==6);
     assert(!strcmp(shunting_yard("1+2+3").rpn_exp,"1 2 + 3 + "));
+
+    assert(shunting_yard("100-200").res==-100);
+    assert(!strcmp(shunting_yard("100-200").rpn_exp,"100 200 -"));
+
+    assert(shunting_yard("100*200-300").res==19700);
+    assert(!strcmp(shunting_yard("100-200").rpn_exp,"100 200 * 300 -"));
 }
 
 int main(void)

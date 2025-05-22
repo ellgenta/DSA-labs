@@ -1,8 +1,8 @@
-#DSA laboratory works 
+# DSA laboratory works 
 
 This repository contains code files (in C) for laboratory works, that were completed during university Data Structures and Algorithms course
 
-##A small description for the files, their content, and the topics of LW
+## A small description for the files, their content, and the topics of LW
 
 1. dsa_lab_1.c - LW №1: Implementation of arraylist ADT and member functions
 2. dsa_lab_2.c - LW №2: Implementation of one-sided linked-list ADT and member functions

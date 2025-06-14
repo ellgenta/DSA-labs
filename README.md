@@ -10,4 +10,4 @@ This repository contains code files (in C) for laboratory works, that were compl
 4. LW №4: Implementation of Binary Search Tree and some of the member functions
 5. LW №5: Implementation of Shunting Yard algorithm
 6. LW №6: Implementation of Heap Sort algorithm
-7. LW №7: Implementation of the simpliest finite automaton (*in progress)
+7. LW №7: Implementation of the simpliest finite automaton 

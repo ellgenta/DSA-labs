@@ -12,6 +12,18 @@ bool bit(char c){
         return false;
 }
 
+/*
+The automaton consists of 9 states (0-8)
+
+The invariant for the first eight (0, 1, 2, ..., 7) states remains the same:
+if the current symbol is a bit (sym=='0' or sym=='1'), then we simply increment the state 
+(otherwise we return false, because the string in our case should consist only of 'zeros' and 'ones')
+
+As for the last (8th) state, condition is the following:
+if the current symbol is the null character (sym=='\0'), then we can terminate verification and return true 
+(otherwise we return false, since a byte consists exactly of 8 bits)
+*/
+
 bool byte(char* str,size_t str_size){
     int state=0;
 

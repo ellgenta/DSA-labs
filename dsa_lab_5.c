@@ -15,6 +15,11 @@ typedef struct _exp_t{
     char* rpn_exp;
 } exp_t;
 
+typedef struct _calc_t {
+    int num;
+    bool state;
+} calc_t;
+
 typedef struct _node{
     int data;
     role r;
@@ -131,7 +136,7 @@ void copy(node** head,char* str){
     }
 }
 
-int perform(node** top,node** head){
+bool perform(node** top,node** head){
     int res=0;
 
     if((*head)->data=='+')
@@ -140,13 +145,17 @@ int perform(node** top,node** head){
         res=(*top)->prev->data-(*top)->data;
     else if((*head)->data=='*')
         res=(*top)->prev->data*(*top)->data;
-    else if((*head)->data=='/')
+    else if((*head)->data=='/' && (*top)->data != 0)
         res=(*top)->prev->data/(*top)->data;
+    else
+        return false;
 
     pop(top);
     pop(top);
 
     push(top,res);
+
+    return true;
 }
 
 bool valid(node** head){
@@ -200,14 +209,19 @@ bool close_parantheses(node** top,node** head){
     return false;
 }
 
-int calculate(node** top,node** head){
+calc_t calculate(node** top,node** head){
+    if(valid(head) == false)
+        return (calc_t){0, false};
+
     int res=0;
 
     while(!empty(head)){
         if((*head)->r==ond)
             push(top,(*head)->data);
-        else
-            perform(top,head);
+        else{
+            if(perform(top,head) == false)
+                return (calc_t){0, false};
+        }
         
         dequeue(head);
     }
@@ -215,7 +229,7 @@ int calculate(node** top,node** head){
     res=(*top)->data;
     pop(top);
 
-    return res;
+    return (calc_t){res, true};
 }
 
 exp_t shunting_yard(char* input){
@@ -264,14 +278,15 @@ exp_t shunting_yard(char* input){
         tail(&head)->r=otr;
     }
 
-    if(!valid(&head))
-        return (exp_t){0,""};
-
     char postfix[MAX_LEN]={0};
     copy(&head,postfix);
-    int res=calculate(&top,&head);    
-    
-    return (exp_t){res,postfix};
+
+    calc_t result = calculate(&top,&head);
+
+    if(result.state == false)
+        return (exp_t){0,""};
+
+    return (exp_t){result.num,postfix};
 }
 
 void test_shunting_yard(){
@@ -333,10 +348,13 @@ void test_shunting_yard(){
     assert(!strcmp(shunting_yard("1+2+3").rpn_exp,"1 2 + 3 + "));
 
     assert(shunting_yard("100-200").res==-100);
-    assert(!strcmp(shunting_yard("100-200").rpn_exp,"100 200 -"));
+    assert(!strcmp(shunting_yard("100-200").rpn_exp,"100 200 - "));
 
     assert(shunting_yard("100*200-300").res==19700);
-    assert(!strcmp(shunting_yard("100-200").rpn_exp,"100 200 * 300 -"));
+    assert(!strcmp(shunting_yard("100*200-300").rpn_exp,"100 200 * 300 - "));
+
+    assert(shunting_yard("100 / 0").res == 0);
+    assert(!strcmp(shunting_yard("100 / 0").rpn_exp,""));
 }
 
 int main(void)
